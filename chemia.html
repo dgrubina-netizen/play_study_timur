@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Szyfr pierwiastków · Atlas misji</title>
+<style>
+:root{color-scheme:dark;--ink:#f5f1e7;--muted:#bfd2d4;--line:#405b63;--mint:#b7f27c;--panel:#14262e}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top right,#214139,transparent 60%),#0d171d;color:var(--ink);font:17px/1.5 system-ui,sans-serif}
+main{max-width:900px;margin:auto;padding:24px clamp(14px,4vw,36px) 44px}a{color:var(--mint)}h1{font-size:clamp(2.5rem,8vw,5rem);line-height:1;margin:.3em 0;letter-spacing:-.055em}h2,h3,p{margin:0 0 12px}.intro,p,small,figcaption{color:var(--muted)}
+nav,.row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}button,input{font:inherit;color:inherit;border:1px solid var(--line);min-height:44px;border-radius:9px;background:#223942;padding:8px 13px}button{cursor:pointer;font-weight:650}button[aria-pressed=true],button.primary{background:var(--mint);color:#142516}button:hover{border-color:var(--mint)}:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,4vw,25px);margin-top:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:7px;margin-bottom:16px}
+.element-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin:14px 0;align-items:start}figure{margin:0}img{display:block;width:100%;height:clamp(150px,32vw,235px);object-fit:contain;background:#0b171e;border-radius:10px}figcaption{font-size:.84rem;margin-top:6px}small{display:block;overflow-wrap:anywhere}.symbol{font-family:ui-monospace,monospace;color:var(--mint)}.prompt{font-size:clamp(1.65rem,5vw,2.7rem);overflow-wrap:anywhere}.answer{width:min(100%,260px)}.feedback{border-left:4px solid var(--mint);padding-left:12px;margin:14px 0}.wrong{border-color:#ffd295}.wrong strong{color:#ffd295}details{border-top:1px solid var(--line);padding:10px 0}summary{cursor:pointer}form{margin:0}.hint{background:#213941;padding:10px 12px;border-radius:8px}.hint strong{color:var(--mint)}@media(max-width:560px){.element-card{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<a href="./">← Atlas misji</a>
+<h1>Szyfr pierwiastków</h1>
+<p class="intro">Chemia · klasa 7 · 22 pierwiastki</p>
+<nav aria-label="Tryby gry">
+<button type="button" data-mode="learn">Odkryj pierwiastek</button>
+<button type="button" data-mode="train">Złam szyfr</button>
+<button type="button" data-mode="test">Kartkówka</button>
+</nav>
+<section id="screen" class="panel" aria-label="Pole gry"></section>
+</main>
+<script>
+const elements = [
+  {
+    "symbol": "H",
+    "name": "wodór",
+    "caption": "Świecący wodór w rurce wyładowczej",
+    "fact": "Wodór jest najlżejszym pierwiastkiem. W jądrze Słońca z jąder wodoru powstaje hel, a przy tym uwalnia się energia.",
+    "hint": "H jak hydrogen.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Hydrogenglow.jpg",
+    "credit": "User:Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/hydrogen.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Hydrogenglow.jpg"
+  },
+  {
+    "symbol": "O",
+    "name": "tlen",
+    "caption": "Ciekły tlen w zlewce",
+    "fact": "Tlen w powietrzu jest bezbarwny, a ciekły tlen ma bladoniebieski kolor.",
+    "hint": "O jak oxygen.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Liquid_oxygen_in_a_beaker_%28cropped_and_retouched%29.jpg",
+    "credit": "Staff Sgt. Nika Glover, U.S. Air Force, Public domain, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Liquid_oxygen_in_a_beaker_%28cropped_and_retouched%29.jpg"
+  },
+  {
+    "symbol": "N",
+    "name": "azot",
+    "caption": "Świecący azot w rurce wyładowczej",
+    "fact": "Około 78% objętości powietrza stanowi azot. W każdym oddechu wciągasz go więcej niż tlenu.",
+    "hint": "N jak nitrogen.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Nitrogen-glow.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/nitrogen.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Nitrogen-glow.jpg"
+  },
+  {
+    "symbol": "Cl",
+    "name": "chlor",
+    "caption": "Próbka chloru",
+    "fact": "Chlorki są w soli kuchennej. Sam chlor w postaci gazu ma zielonożółty kolor.",
+    "hint": "Cl — pierwsze dwie litery słowa chlorine.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Chlorine-sample-flip.jpg",
+    "credit": "Benjah-bmm27, Public domain, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Chlorine-sample-flip.jpg"
+  },
+  {
+    "symbol": "S",
+    "name": "siarka",
+    "caption": "Żółta próbka siarki",
+    "fact": "Siarka rodzima ma żółty kolor. Można ją znaleźć między innymi w okolicach wulkanów.",
+    "hint": "S jak siarka.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/44/Sulfur-sample.jpg",
+    "credit": "Ben Mills · domena publiczna",
+    "source": "https://commons.wikimedia.org/wiki/File:Sulfur-sample.jpg"
+  },
+  {
+    "symbol": "C",
+    "name": "węgiel",
+    "caption": "Próbki różnych postaci węgla",
+    "fact": "Grafit i diament składają się z atomów węgla. Inne ułożenie atomów sprawia, że grafit zostawia kreskę, a diament jest wyjątkowo twardy.",
+    "hint": "C jak carbon.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/68/Pure_Carbon.png",
+    "credit": "Texas Lane, CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Pure_Carbon.png"
+  },
+  {
+    "symbol": "P",
+    "name": "fosfor",
+    "caption": "Fioletowy fosfor",
+    "fact": "W zapałkach bezpiecznych czerwony fosfor znajduje się na drasce, czyli pasku na pudełku.",
+    "hint": "P jak phosphorus.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6d/Phosphorus-purple.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/phosphorus.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Phosphorus-purple.jpg"
+  },
+  {
+    "symbol": "Si",
+    "name": "krzem",
+    "caption": "Bryłka krzemu",
+    "fact": "Z krzemu produkuje się płytki, na których powstają układy scalone, między innymi procesory.",
+    "hint": "Si jak silicon.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Silicon.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/silicon.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Silicon.jpg"
+  },
+  {
+    "symbol": "Na",
+    "name": "sód",
+    "caption": "Próbka metalicznego sodu",
+    "fact": "Sód w soli kuchennej występuje w postaci jonów. Na zdjęciu widać jego metaliczną postać.",
+    "hint": "Na od łacińskiego natrium.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/27/Na_%28Sodium%29.jpg",
+    "credit": "The original uploader was Dnn87 at English Wikipedia., CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Na_%28Sodium%29.jpg"
+  },
+  {
+    "symbol": "K",
+    "name": "potas",
+    "caption": "Kawałki metalicznego potasu",
+    "fact": "Jony potasu pomagają nerwom przesyłać sygnały i mięśniom pracować.",
+    "hint": "K od łacińskiego kalium.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Potassium.JPG",
+    "credit": "Dnn87, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Potassium.JPG"
+  },
+  {
+    "symbol": "Ca",
+    "name": "wapń",
+    "caption": "Ziarna metalicznego wapnia",
+    "fact": "Związki wapnia nadają kościom i zębom twardość. Wapń występuje też w wapieniu i muszlach.",
+    "hint": "Ca jak calcium.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/72/Calcium.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/calcium.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Calcium.jpg"
+  },
+  {
+    "symbol": "Mg",
+    "name": "magnez",
+    "caption": "Kryształy magnezu",
+    "fact": "Płonący magnez daje bardzo jasne białe światło. Wykorzystywano go w dawnych lampach błyskowych.",
+    "hint": "Mg — litery m i g w słowie magnez.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Magnesium_crystals.jpg",
+    "credit": "Warut Roonguthai, CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Magnesium_crystals.jpg"
+  },
+  {
+    "symbol": "Fe",
+    "name": "żelazo",
+    "caption": "Fragmenty meteorytu żelaznego",
+    "fact": "Niektóre meteoryty składają się głównie z żelaza i niklu. Żelazo jest też głównym składnikiem stali.",
+    "hint": "Fe od łacińskiego ferrum.",
+    "url": "https://images-of-elements.com/iron-2.jpg",
+    "credit": "Chemical ELements A Virtual Museum, CC BY 3.0 https://creativecommons.org/licenses/by/3.0 source: https://images-of-elements.com/iron.php",
+    "source": "https://images-of-elements.com/iron.php"
+  },
+  {
+    "symbol": "Zn",
+    "name": "cynk",
+    "caption": "Próbka cynku",
+    "fact": "Cienka warstwa cynku na stalowym ogrodzeniu pomaga chronić stal przed rdzą. To cynkowanie.",
+    "hint": "Zn — początek słowa zinc po usunięciu i.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Zinc_%2830_Zn%29.jpg",
+    "credit": "Hi-Res Images ofChemical Elements, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/zinc.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Zinc_%2830_Zn%29.jpg"
+  },
+  {
+    "symbol": "Br",
+    "name": "brom",
+    "caption": "Ciekły brom w zamkniętej ampułce",
+    "fact": "Brom to niemetal, który w temperaturze pokojowej jest czerwonobrunatną cieczą.",
+    "hint": "Br jak początek słowa brom.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Bromine-ampoule.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/bromine.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Bromine-ampoule.jpg"
+  },
+  {
+    "symbol": "Cu",
+    "name": "miedź",
+    "caption": "Bryłka miedzi rodzimej",
+    "fact": "Miedź dobrze przewodzi prąd, dlatego znajdziesz ją w wielu przewodach elektrycznych.",
+    "hint": "Cu od łacińskiego cuprum.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/NatCopper.jpg",
+    "credit": "Native_Copper_Macro_Digon3.jpg: 'Jonathan Zander (Digon3)' derivative work: Materialscientist, CC BY-SA 2.5 https://creativecommons.org/licenses/by-sa/2.5, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:NatCopper.jpg"
+  },
+  {
+    "symbol": "Al",
+    "name": "glin",
+    "caption": "Folia z glinu",
+    "fact": "Folia aluminiowa zawdzięcza nazwę aluminium, czyli glinowi. Glin jest lekki i wykorzystuje się go także w stopach do budowy samolotów.",
+    "hint": "Al jak początek słowa aluminium.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Aluminium.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/aluminium.php ",
+    "source": "https://commons.wikimedia.org/wiki/File:Aluminium.jpg"
+  },
+  {
+    "symbol": "Pb",
+    "name": "ołów",
+    "caption": "Próbka ołowiu z dwóch stron",
+    "fact": "Ołów jest gęsty. Z tego powodu wykorzystuje się go w osłonach przed promieniowaniem rentgenowskim.",
+    "hint": "Pb od łacińskiego plumbum.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Lead-2.jpg",
+    "credit": "Chemical Elements, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/lead.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Lead-2.jpg"
+  },
+  {
+    "symbol": "Ag",
+    "name": "srebro",
+    "caption": "Samorodek srebra",
+    "fact": "Srebro bardzo dobrze przewodzi prąd. Wykorzystuje się je między innymi w niektórych stykach elektrycznych.",
+    "hint": "Ag od łacińskiego argentum.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Silver-nugget.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: http://images-of-elements.com/silver.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Silver-nugget.jpg"
+  },
+  {
+    "symbol": "Ba",
+    "name": "bar",
+    "caption": "Próbka baru z warstwą tlenku",
+    "fact": "Siarczan baru pomaga uzyskać wyraźny obraz przewodu pokarmowego w niektórych badaniach rentgenowskich.",
+    "hint": "Ba jak początek słowa bar.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Barium_%2856_Ba%29.jpg",
+    "credit": "Hi-Res Images ofChemical Elements, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: https://images-of-elements.com/barium.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Barium_%2856_Ba%29.jpg"
+  },
+  {
+    "symbol": "I",
+    "name": "jod",
+    "caption": "Próbka jodu",
+    "fact": "Związki jodu dodaje się do soli jodowanej. Jod jest potrzebny tarczycy do wytwarzania hormonów.",
+    "hint": "Symbol I to wielka litera i.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Iodine-sample.jpg",
+    "credit": "Benjah-bmm27, Public domain, via Wikimedia Commons",
+    "source": "https://commons.wikimedia.org/wiki/File:Iodine-sample.jpg"
+  },
+  {
+    "symbol": "Sn",
+    "name": "cyna",
+    "caption": "Bryłka cyny",
+    "fact": "Cyną pokrywa się stal używaną do produkcji niektórych puszek. Jest też składnikiem wielu stopów lutowniczych.",
+    "hint": "Sn od łacińskiego stannum.",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Tin-2.jpg",
+    "credit": "Jurii, CC BY 3.0 https://creativecommons.org/licenses/by/3.0, via Wikimedia Commons, source: http://images-of-elements.com/tin.php",
+    "source": "https://commons.wikimedia.org/wiki/File:Tin-2.jpg"
+  }
+];
+const screen = document.querySelector('#screen');
+const modes = [...document.querySelectorAll('[data-mode]')];
+let selected = 0;
+let state;
+
+function card(element) {
+  const {symbol, name, caption, fact, hint, url, credit, source} = element;
+  return `<article class="element-card">
+    <div>
+      <h3><span class="symbol">${symbol}</span> — ${name}</h3>
+      <p>${fact}</p>
+      <p class="hint"><strong>Jak zapamiętać?</strong> ${hint}</p>
+    </div>
+    <figure>
+      <img src="${url}" alt="${caption}" loading="lazy">
+      <figcaption>${caption}<small><a href="${source}" target="_blank" rel="noopener">Źródło zdjęcia</a> · ${credit}</small></figcaption>
+    </figure>
+  </article>`;
+}
+
+function watchImages() {
+  for (const image of screen.querySelectorAll('img')) {
+    function showFallback() {
+      const fallback = document.createElement('p');
+      fallback.textContent = 'Zdjęcie można otworzyć przez link w podpisie.';
+      image.replaceWith(fallback);
+    }
+    if (image.complete && !image.naturalWidth) showFallback();
+    else image.addEventListener('error', showFallback, {once:true});
+  }
+}
+
+function learn(focusCard = false) {
+  screen.innerHTML = `<h2>Odkryj pierwiastek</h2>
+    <p>Wybierz symbol, żeby zobaczyć zdjęcie i ciekawostkę.</p>
+    <div class="grid">${elements.map(({symbol, name}, index) =>
+      `<button type="button" aria-label="${symbol} — ${name}" aria-pressed="${index === selected}" data-index="${index}">${symbol}</button>`).join('')}</div>
+    ${card(elements[selected])}`;
+  screen.querySelectorAll('[data-index]').forEach(button => {
+    button.onclick = () => { selected = Number(button.dataset.index); learn(true); };
+  });
+  if (focusCard) screen.querySelector('[aria-pressed=true]').focus();
+  watchImages();
+}
+
+function shuffled(items) {
+  const result = [...items];
+  for (let index = result.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [result[index], result[other]] = [result[other], result[index]];
+  }
+  return result;
+}
+
+function normalizeName(name) {
+  return name.toLocaleLowerCase('pl').normalize('NFD').replace(/\p{M}/gu, '').replaceAll('ł', 'l');
+}
+
+function startRound(mode, questions, focus = false) {
+  const pool = shuffled(elements).slice(0, mode === 'test' ? 10 : elements.length);
+  state = {mode, queue: questions ?? pool.map((element, index) => ({
+    element, askSymbol: index % 2 === 0
+  })), answers:[], position:0, streak:0, code:[]};
+  question(focus);
+}
+
+function question(focus) {
+  const current = state.queue[state.position];
+  if (!current) return results(focus);
+  const training = state.mode === 'train';
+  const {element, askSymbol} = current;
+  const answer = askSymbol ? element.symbol : element.name;
+  screen.innerHTML = `
+    <p>${training ? 'Złam szyfr · ' + state.streak + '/3 poprawne z rzędu' : 'Kartkówka · ' + (state.position + 1) + '/' + state.queue.length}</p>
+    <h2 class="prompt">${askSymbol ? element.name : element.symbol}</h2>
+    <form>
+      <label for="answer">${askSymbol ? 'Wpisz symbol' : 'Wpisz polską nazwę'}</label>
+      <div class="row"><input class="answer" id="answer" required autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32">
+      <button class="primary">${training ? 'Sprawdź' : 'Zapisz odpowiedź'}</button></div>
+    </form>
+    <div id="feedback" aria-live="polite"></div>`;
+
+  const form = screen.querySelector('form');
+  const input = screen.querySelector('input');
+  if (focus) input.focus();
+  form.onsubmit = event => {
+    event.preventDefault();
+    if (input.readOnly) return;
+    const typed = input.value.trim();
+    if (!typed) { input.value = ''; input.reportValidity(); input.focus(); return; }
+    const correct = askSymbol ? typed === answer : normalizeName(typed) === normalizeName(answer);
+    state.answers.push({current, correct, typed, answer});
+    state.position++;
+    if (!training) return question(true);
+
+    let code = '';
+    if (correct) {
+      state.streak++;
+      state.code.push(element.symbol);
+      if (state.streak === 3) {
+        code = 'Kod odblokowany · ' + state.code.join(' · ');
+        state.streak = 0;
+        state.code = [];
+      }
+    } else {
+      state.streak = 0;
+      state.code = [];
+      if (!state.queue.slice(state.position).includes(current)) state.queue.push(current);
+    }
+
+    input.readOnly = true;
+    form.querySelector('button').disabled = true;
+    const feedback = screen.querySelector('#feedback');
+    const caseError = askSymbol && typed.toLowerCase() === answer.toLowerCase();
+    feedback.innerHTML = `<div class="feedback ${correct ? '' : 'wrong'}"><strong>${correct ? 'Dobrze!' : caseError ? 'Sprawdź wielkość liter.' : 'Spróbuj zapamiętać tę parę.'}</strong>
+      <p>Poprawna odpowiedź · ${answer}</p>
+      ${code ? '<p class="symbol">' + code + '</p>' : ''}</div>
+      ${card(element)}
+      <button type="button" class="primary">${state.position < state.queue.length ? 'Dalej →' : 'Zobacz wynik →'}</button>`;
+    const next = feedback.querySelector('button');
+    next.onclick = () => question(true);
+    watchImages();
+  };
+}
+
+function results(focus) {
+  const correct = state.answers.filter(item => item.correct).length;
+  const mistakes = state.answers.filter(item => !item.correct);
+  const retry = [...new Set(mistakes.map(item => item.current))];
+  const mode = state.mode;
+  screen.innerHTML = `<h2 tabindex="-1">Wynik · ${correct}/${state.answers.length}</h2>
+    ${mode === 'test' ? state.answers.map(({current, correct, typed, answer}, index) =>
+      `<details ${correct ? '' : 'open'}><summary>${index + 1}. ${current.askSymbol ? current.element.name : current.element.symbol} · ${correct ? 'dobrze' : 'do powtórki'}</summary>
+        <p>Twoja odpowiedź · <span data-typed="${index}"></span></p>
+        <p>Poprawna odpowiedź · ${answer}</p>${card(current.element)}</details>`).join('') : ''}
+    <div class="row">${retry.length ? '<button type="button" class="primary" id="retry">Powtórz tylko błędy</button>' : ''}
+    <button type="button" id="again">${mode === 'test' ? 'Nowa kartkówka' : 'Zagraj jeszcze raz'}</button></div>`;
+  screen.querySelectorAll('[data-typed]').forEach(span => {
+    span.textContent = state.answers[Number(span.dataset.typed)].typed;
+  });
+  const retryButton = screen.querySelector('#retry');
+  if (retryButton) retryButton.onclick = () => startRound(mode, retry, true);
+  screen.querySelector('#again').onclick = () => startRound(mode, undefined, true);
+  if (focus) screen.querySelector('h2').focus();
+  watchImages();
+}
+
+function selectMode(mode, focus = false) {
+  modes.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+  if (mode === 'learn') learn();
+  else startRound(mode, undefined, focus);
+}
+
+modes.forEach(button => button.onclick = () => selectMode(button.dataset.mode, true));
+selectMode('learn');
+</script>
+</body>
+</html>
