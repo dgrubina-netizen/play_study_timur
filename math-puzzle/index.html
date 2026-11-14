@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f8f4ea">
+<title>Matematyczne puzzle</title>
+<style>
+:root{color-scheme:light;--ink:#231d3b;--muted:#605770;--violet:#5937bd;--paper:#f8f4ea;--line:#ded6ea}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 "DM Sans",system-ui,sans-serif}
+main{width:min(1080px,100%);margin:auto;padding:clamp(18px,5vw,56px)}
+h1,h2,p,figure{margin:0}
+header{padding-bottom:clamp(20px,4vw,42px)}
+h1{font-size:clamp(2.35rem,7vw,4.65rem);line-height:1;letter-spacing:-.065em}
+header p{margin-top:12px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,1fr);gap:clamp(16px,3vw,30px);align-items:start}
+.frame,.controls{background:#fff;border:1px solid var(--line);border-radius:24px;padding:clamp(12px,3vw,24px)}
+.frame{background:#eee8ff}
+canvas{width:100%;height:auto;aspect-ratio:1;display:block;border-radius:15px;background:#261e49}
+figcaption{display:flex;align-items:center;gap:12px;margin-top:12px;font-weight:750}
+progress{appearance:none;flex:1;height:8px;border:0;border-radius:8px;overflow:hidden;background:#d8ccef}
+progress::-webkit-progress-bar{background:#d8ccef}progress::-webkit-progress-value{background:var(--violet)}progress::-moz-progress-bar{background:var(--violet)}
+.settings{display:flex;flex-wrap:wrap;gap:12px}
+label{display:grid;gap:4px;font-size:.875rem;font-weight:750;flex:1}
+select,button{font:inherit;color:inherit;border:1px solid var(--line);border-radius:12px;background:#fff;min-height:44px}
+select{padding:7px;min-width:0;width:100%}
+button{cursor:pointer;font-weight:750;padding:8px 14px}
+button:hover:not(:disabled){border-color:var(--violet);background:#f5f0ff}
+button:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid #704bf1;outline-offset:3px}
+.question{font-size:clamp(2.1rem,6vw,4rem);font-weight:850;letter-spacing:-.045em;text-align:center;margin:15px 0 12px;font-variant-numeric:tabular-nums}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.answers button{background:#f6f2ff;font-size:1.25rem;min-height:52px}
+.answers button:disabled{color:#82414b;background:#fff1f1;border-color:#ecc6ca;text-decoration:line-through;cursor:default}
+.feedback{min-height:3.25em;margin-top:10px;color:var(--muted);font-size:.95rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.primary{background:var(--violet);color:#fff;border-color:var(--violet)}
+.primary:hover:not(:disabled){background:#4726a4}
+[hidden]{display:none!important}
+@media(max-width:650px){.layout{grid-template-columns:minmax(0,1fr)}.frame{width:min(100%,330px);margin-inline:auto}.question{margin:8px 0}.feedback{min-height:2.2em}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Matematyczne puzzle</h1><p>Rozwiąż 12 działań, żeby odkryć cały obrazek.</p></header>
+<div class="layout">
+<figure class="frame">
+  <canvas id="picture" width="480" height="480" role="img" aria-label="Ukryty obrazek, 0 z 12 odkrytych fragmentów"></canvas>
+  <figcaption><progress id="progress" max="12" value="0" aria-label="Odkryte fragmenty"></progress><span id="count">0 / 12</span></figcaption>
+</figure>
+<section class="controls" aria-label="Zadania">
+  <div class="settings">
+    <label>Działania<select id="mode"><option value="mixed">Mnożenie i dzielenie</option><option value="multiply">Mnożenie</option><option value="divide">Dzielenie</option></select></label>
+    <label>Tabliczka<select id="table"><option value="all">Od 1 do 10</option></select></label>
+  </div>
+  <div id="question" class="question" tabindex="-1"></div>
+  <div id="answers" class="answers" aria-label="Wybierz odpowiedź"></div>
+  <p id="feedback" class="feedback" role="status"></p>
+  <div class="actions">
+    <button type="button" id="hint">Podpowiedź</button>
+    <button type="button" id="next" class="primary" hidden>Dalej</button>
+    <button type="button" id="restart" hidden>Nowa układanka</button>
+  </div>
+</section>
+</div>
+</main>
+<script>
+'use strict';
+const get = id => document.getElementById(id);
+const canvas = get('picture');
+const ctx = canvas.getContext('2d');
+const mode = get('mode');
+const table = get('table');
+const answers = get('answers');
+const question = get('question');
+const feedback = get('feedback');
+const hint = get('hint');
+const next = get('next');
+const restart = get('restart');
+const total = 12;
+const range = Array.from({length:10}, (_, index) => index + 1);
+for (const n of range) table.add(new Option('Tabliczka ' + n, n));
+
+const scenes = [
+  {name:'lis pod zorzą polarną', sky:'#20184e', glow:'#83ffe1', hill:'#281b54', fur:'#ed814e', ear:'fox'},
+  {name:'kot pod różowym niebem', sky:'#392054', glow:'#ff9bb1', hill:'#542c61', fur:'#9fc2f8', ear:'cat'},
+  {name:'królik pod gwiazdami', sky:'#132a4c', glow:'#a0cbff', hill:'#273d69', fur:'#efd3ab', ear:'rabbit'}
+];
+let round = 0;
+let tasks, order, solved, waiting, scene;
+
+function shuffle(items) {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+function pickRepeating(pool, size) {
+  return [...shuffle(pool), ...shuffle(pool)].slice(0, size);
+}
+function makeTasks(operation, selectedTable) {
+  const pairs = new Map();
+  for (const a of selectedTable === 'all' ? range : [Number(selectedTable)]) {
+    for (const b of range) {
+      const key = operation === 'multiply' && selectedTable === 'all'
+        ? Math.min(a,b) + 'x' + Math.max(a,b) : a + ':' + b;
+      pairs.set(key, operation === 'multiply'
+        ? {text:`${a} × ${b}`, value:a*b, hint:`Dodaj ${b} do siebie ${a} razy.`}
+        : {text:`${a*b} ÷ ${a}`, value:b, hint:`Jaka liczba pomnożona przez ${a} daje ${a*b}?`});
+    }
+  }
+  return [...pairs.values()];
+}
+function optionsFor(task) {
+  const wrong = shuffle([task.value-3,task.value-2,task.value-1,task.value+1,task.value+2,task.value+3]
+    .filter(n => n > 0 && n <= (task.text.includes('÷') ? 10 : 100))).slice(0,3);
+  return shuffle([task.value,...wrong]);
+}
+function ellipse(x,y,rx,ry,color) {
+  ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+}
+function shape(color, ...points) {
+  ctx.beginPath();
+  points.forEach(([x,y],i)=>i ? ctx.lineTo(x,y) : ctx.moveTo(x,y));
+  ctx.closePath();ctx.fillStyle=color;ctx.fill();
+}
+function paintScene(art) {
+  const sky = ctx.createLinearGradient(0,0,0,480);
+  sky.addColorStop(0,art.sky);sky.addColorStop(1,art.glow);
+  ctx.fillStyle=sky;ctx.fillRect(0,0,480,480);
+  for(let i=0;i<63;i++) ellipse((i*73+17)%480,(i*53+31)%283, i%7===0?2:1, i%7===0?2:1,'#fff9ec');
+  ellipse(345,123,54,54,'#fff4cd');
+  ctx.lineWidth=34;ctx.lineCap='round';ctx.strokeStyle=art.glow;ctx.globalAlpha=.46;
+  ctx.beginPath();ctx.moveTo(-40,198);ctx.bezierCurveTo(90,37,264,290,518,80);ctx.stroke();ctx.globalAlpha=1;
+  shape('#63587d',[0,343],[106,216],[173,294],[277,194],[370,278],[430,235],[480,309],[480,480],[0,480]);
+  shape('#e9e9f1',[76,251],[106,216],[137,252],[113,242],[102,255],[95,246]);
+  shape('#ece8f5',[237,239],[277,194],[325,243],[294,229],[280,241],[270,228]);
+  shape(art.hill,[0,353],[106,325],[192,367],[290,331],[375,353],[480,326],[480,480],[0,480]);
+  for(const [x,y,s] of [[33,351,57],[71,366,48],[417,352,61],[452,364,80],[388,356,32]]) {
+    shape('#20223f',[x,y-s],[x-s*.31,y-12],[x-s*.2,y-12],[x-s*.43,y],[x+s*.43,y],[x+s*.2,y-12],[x+s*.31,y-12]);
+    ctx.fillStyle='#20223f';ctx.fillRect(x-2,y,4,10);
+  }
+  ellipse(246,445,105,12,'#19172f');
+  ellipse(243,410,60,48,art.fur);
+  if(art.ear==='rabbit'){
+    ellipse(217,297,13,42,art.fur);ellipse(265,292,13,44,art.fur);
+    ellipse(217,295,6,29,'#dd8fa9');ellipse(265,291,6,30,'#dd8fa9');
+  } else {
+    shape(art.fur,[180,353],[181,286],[228,326]);
+    shape(art.fur,[258,325],[302,286],[304,355]);
+    shape('#824d71',[189,329],[189,305],[213,329]);
+    shape('#824d71',[273,328],[294,304],[295,330]);
+  }
+  ellipse(243,361,65,43,art.fur);
+  ellipse(222,375,29,16,'#fff3df');ellipse(265,375,29,16,'#fff3df');
+  ellipse(223,351,4,6,'#251b39');ellipse(263,351,4,6,'#251b39');
+  ellipse(243,369,7,5,'#251b39');
+  for(let i=0;i<23;i++) ellipse((i*113+11)%480,397+(i*19)%81,2,1,'#aaa6d9');
+}
+function draw() {
+  paintScene(scene);
+  const revealed = new Set(order.slice(0,solved));
+  for(let i=0;i<total;i++){
+    const x=(i%4)*120,y=Math.floor(i/4)*160;
+    if(!revealed.has(i)){
+      ctx.fillStyle=i%2===Math.floor(i/4)%2?'#302653':'#382c60';
+      ctx.fillRect(x,y,120,160);
+      ctx.fillStyle='#7e6ea7';ctx.font='700 20px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('✦',x+60,y+80);
+    }
+    if(solved<total){
+      ctx.strokeStyle='#a295c866';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,119,159);
+    }
+  }
+  canvas.setAttribute('aria-label',solved===total ? 'Odkryty obrazek – '+scene.name : `Ukryty obrazek, ${solved} z ${total} odkrytych fragmentów`);
+  get('progress').value=solved;
+  get('count').textContent=solved+' / '+total;
+}
+function showTask(focus=false) {
+  const task=tasks[solved];
+  waiting=false;
+  question.textContent=task.text+' = ?';
+  feedback.textContent='';
+  hint.hidden=false;
+  next.hidden=true;
+  answers.replaceChildren();
+  for(const value of optionsFor(task)){
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=value;
+    button.addEventListener('click',()=>check(value,button));
+    answers.append(button);
+  }
+  if(focus) question.focus();
+}
+function check(value, button) {
+  if(waiting) return;
+  if(value!==tasks[solved].value){
+    button.disabled=true;
+    feedback.textContent='Spróbuj jeszcze raz.';
+    answers.querySelector('button:not(:disabled)')?.focus();
+    return;
+  }
+  waiting=true;
+  solved++;
+  draw();
+  answers.replaceChildren();
+  hint.hidden=true;
+  question.textContent=tasks[solved-1].text+' = '+value;
+  if(solved===total){
+    feedback.textContent='Cały obrazek odkryty! To '+scene.name+'.';
+    restart.hidden=false;
+    restart.focus();
+  } else {
+    feedback.textContent='Dobrze! Jeden fragment odkryty.';
+    next.hidden=false;
+    next.focus();
+  }
+}
+function start(focus=false) {
+  const multiplication=makeTasks('multiply',table.value);
+  const division=makeTasks('divide',table.value);
+  tasks=mode.value==='mixed'
+    ? shuffle([...pickRepeating(multiplication,6),...pickRepeating(division,6)])
+    : pickRepeating(mode.value==='multiply'?multiplication:division,total);
+  order=shuffle(Array.from({length:total},(_,i)=>i));
+  scene=scenes[round++%scenes.length];
+  solved=0;
+  restart.hidden=true;
+  draw();
+  showTask(focus);
+}
+hint.addEventListener('click',()=>{ feedback.textContent=tasks[solved].hint; });
+next.addEventListener('click',()=>showTask(true));
+restart.addEventListener('click',()=>start(true));
+mode.addEventListener('change',()=>start());
+table.addEventListener('change',()=>start());
+start();
+</script>
+</body>
+</html>
