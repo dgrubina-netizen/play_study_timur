@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Szyfr pierwiastków · Atlas misji</title>
+<title>Szyfr pierwiastków · Portal Timura</title>
 <style>
 :root{color-scheme:dark;--ink:#f5f1e7;--muted:#bfd2d4;--line:#405b63;--mint:#b7f27c;--panel:#14262e}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top right,#214139,transparent 60%),#0d171d;color:var(--ink);font:17px/1.5 system-ui,sans-serif}
@@ -15,7 +15,7 @@ nav,.row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}button,input{font:inh
 </head>
 <body>
 <main>
-<a href="./">← Atlas misji</a>
+<a href="./">← Portal Timura</a>
 <h1>Szyfr pierwiastków</h1>
 <p class="intro">Chemia · klasa 7 · 22 pierwiastki</p>
 <nav aria-label="Tryby gry">
@@ -310,7 +310,7 @@ function startRound(mode, questions, focus = false) {
   const pool = shuffled(elements).slice(0, mode === 'test' ? 10 : elements.length);
   state = {mode, queue: questions ?? pool.map((element, index) => ({
     element, askSymbol: index % 2 === 0
-  })), answers:[], position:0, streak:0, code:[]};
+  })), answers:[], position:0, streak:0, code:[], isRetry:Boolean(questions)};
   question(focus);
 }
 
@@ -378,6 +378,13 @@ function results(focus) {
   const mistakes = state.answers.filter(item => !item.correct);
   const retry = [...new Set(mistakes.map(item => item.current))];
   const mode = state.mode;
+  if (mode === 'test' && !state.isRetry) {
+    try {
+      const key = 'portal-timura-v1';
+      const saved = JSON.parse(localStorage.getItem(key)) ?? {};
+      localStorage.setItem(key, JSON.stringify({...saved, chemistry:{score:correct,total:state.answers.length}}));
+    } catch {}
+  }
   screen.innerHTML = `<h2 tabindex="-1">Wynik · ${correct}/${state.answers.length}</h2>
     ${mode === 'test' ? state.answers.map(({current, correct, typed, answer}, index) =>
       `<details ${correct ? '' : 'open'}><summary>${index + 1}. ${current.askSymbol ? current.element.name : current.element.symbol} · ${correct ? 'dobrze' : 'do powtórki'}</summary>

@@ -207,6 +207,7 @@ function studyScore(){
 }
 function studyDiagnosis(){
   const result=studyScore();
+  portalSave('history',{score:result.total,total:studyTotal});
   screen.innerHTML='<div class="bar">'+studyBtn('menu','← Archiwum','ghost')+'</div><section class="panel"><div class="eyebrow">Samoocena</div><h2 tabindex="-1">Wynik '+result.total+' / '+studyTotal+'</h2><div class="topic-list">'+
     result.totals.map(([earned,max],i)=>'<button data-study="topic:'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+studyTopics[i].title+'</strong><small>'+earned+' / '+max+' pkt · otwórz powtórkę</small></button>').join('')+
     '</div><div class="next">'+studyBtn('exam','Napisz ponownie','ghost')+'</div></section>';

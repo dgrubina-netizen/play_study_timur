@@ -97,10 +97,91 @@ const icons = {
  history:'<svg viewBox="0 0 240 85" aria-hidden="true"><path d="M30 43H210" stroke="#86a7a7" stroke-width="2" stroke-dasharray="4 5"/><rect x="51" y="21" width="41" height="43" rx="6" fill="#ffd295" transform="rotate(-12 71 42)"/><rect x="100" y="13" width="44" height="52" rx="6" fill="#b7f27c" transform="rotate(9 122 39)"/><rect x="153" y="26" width="37" height="41" rx="6" fill="#70c5ba" transform="rotate(-7 171 46)"/><text x="122" y="47" text-anchor="middle" fill="#213628" font-size="20" font-weight="bold">?</text></svg>',
  geo:'<svg viewBox="0 0 440 405" aria-hidden="true"><polygon points="'+outline+'" fill="#70c5ba" stroke="#b7f27c" stroke-width="8"/><circle cx="204" cy="150" r="25" fill="#ffd295"/><circle cx="204" cy="150" r="10" fill="#263e44"/></svg>'
 };
+const portalKey = 'portal-timura-v1';
+const activities = {
+  archive: ['Archiwum 1815–1832', 'data-study="menu"'],
+  timeline: ['Maszyna czasu', 'data-start="history"'],
+  radar: ['Radar Polski', 'data-start="geo"'],
+  expedition: ['Ekspedycja', 'data-exp="menu"'],
+  map: ['Krainy geograficzne Polski', 'href="./krainy-polski.html"'],
+  chemistry: ['Szyfr pierwiastków', 'href="./chemia.html"']
+};
+function portalRead(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+  catch { return fallback; }
+}
+function portalSave(field, value) {
+  try { localStorage.setItem(portalKey, JSON.stringify({...portalRead(portalKey, {}), [field]:value})); }
+  catch {}
+}
+function missionButton(id, label, primary = false) {
+  const [name, action] = activities[id];
+  const styling = 'class="mission-button'+(primary?' primary':'')+'" data-activity="'+id+'"';
+  return action.startsWith('href')
+    ? '<a '+styling+' '+action+'>'+(label??name)+'</a>'
+    : '<button '+styling+' '+action+'>'+(label??name)+'</button>';
+}
+function resultLabel(result, fallback) {
+  if (!result || !Number.isInteger(result.score) || !Number.isInteger(result.total) || result.total < 1 || result.score < 0 || result.score > result.total) return fallback;
+  return result.score+' / '+result.total+' pkt';
+}
 function home(){
   game=null;
-  screen.innerHTML='<section class="hero"><div class="eyebrow">Klasa 7 · wybierz przedmiot</div><h1 tabindex="-1">Mapa i maszyna<br>czasu.</h1><p>Wybierz historię, geografię lub chemię.</p></section><div class="cards"><article class="card"><div class="art">'+icons.history+'</div><div class="eyebrow">01 · Historia</div><h2>Maszyna czasu</h2><p>Wstaw wydarzenie na oś czasu. Potem odkryj datę i dowiedz się, co się wtedy stało.</p><button class="primary" data-study="menu">Dział II · przygotuj się →</button><button class="ghost" data-start="history">Uruchom maszynę czasu</button></article><article class="card"><div class="art">'+icons.geo+'</div><div class="eyebrow">02 · Geografia</div><h2>Radar Polski</h2><p>Pierwsze sześć lekcji o środowisku Polski. Rusz na ekspedycję albo wybierz szybką powtórkę.</p><button class="primary" data-start="geo">Włącz radar →</button><a href="./krainy-polski.html" style="margin-top:10px">Krainy geograficzne Polski →</a></article><article class="card"><div class="art" aria-hidden="true" style="font:700 31px ui-monospace,monospace;color:var(--mint)">Fe · Cu · Ag</div><div class="eyebrow">03 · Chemia</div><h2>Szyfr pierwiastków</h2><p>Poznaj 22 pierwiastki, poćwicz symbole i sprawdź się na próbnej kartkówce.</p><a href="./chemia.html" style="margin-top:14px">Otwórz grę →</a></article></div>';
+  const saved=portalRead(portalKey,{});
+  const last=Object.hasOwn(activities,saved.last)?saved.last:null;
+  const recent=last??'archive';
+  const found=portalRead('radar-polski-expedition-v1',[]);
+  const missionCount=Array.isArray(found)?new Set(found.filter(i=>Number.isInteger(i)&&i>=0&&i<7)).size:0;
+  screen.innerHTML=`<div class="hq">
+    <nav class="hq-side" aria-label="Portal">
+      <span class="hq-emblem" aria-hidden="true">◎</span>
+      <a href="#start" aria-current="page">Strona główna</a>
+      <a href="#przedmioty">Przedmioty</a>
+      <a href="#postepy">Postępy</a>
+    </nav>
+    <div class="hq-desk" id="start">
+      <h1 tabindex="-1">Portal Timura</h1>
+      <section class="hq-cover" aria-labelledby="featured">
+        <span class="eyebrow">${last?'Ostatnia aktywność':'Misja na start'}</span>
+        <h2 id="featured">${activities[recent][0]}</h2>
+        <p>${last?'Wróć do ostatnio otwartej gry lub wybierz nową misję.':'Przygotuj się do sprawdzianu z historii · dział II, tematy 1–3.'}</p>
+        ${missionButton(recent,last?'Kontynuuj →':'Rozpocznij misję →',true)}
+      </section>
+      <section id="przedmioty" aria-labelledby="subjects-title">
+        <h2 class="section-title" id="subjects-title">Przedmioty</h2>
+        <div class="hq-subjects">
+          <article class="hq-card">
+            <div class="hq-thumb">${icons.history}</div>
+            <h3>Historia</h3>
+            <div class="hq-actions">${missionButton('archive','Archiwum · dział II',true)}${missionButton('timeline')}</div>
+          </article>
+          <article class="hq-card">
+            <div class="hq-thumb geo">${icons.geo}</div>
+            <h3>Geografia</h3>
+            <div class="hq-actions">${missionButton('radar','Radar Polski · 6 tematów',true)}${missionButton('map')}${missionButton('expedition')}</div>
+          </article>
+          <article class="hq-card">
+            <div class="hq-thumb chem" aria-hidden="true"><span><small>26</small>Fe</span><span><small>29</small>Cu</span><span><small>47</small>Ag</span></div>
+            <h3>Chemia</h3>
+            <div class="hq-actions">${missionButton('chemistry','Szyfr pierwiastków',true)}<p>22 pierwiastki · trening i kartkówka</p></div>
+          </article>
+        </div>
+      </section>
+      <section id="postepy" aria-labelledby="progress-title">
+        <h2 class="section-title" id="progress-title">Postępy</h2>
+        <div class="hq-stats">
+          <div class="hq-stat"><strong>Historia · ostatni sprawdzian</strong><p>${resultLabel(saved.history, 'Brak wyniku')}</p></div>
+          <div class="hq-stat"><strong>Geografia · ekspedycja</strong><p>${missionCount} / 7 ukończonych misji</p></div>
+          <div class="hq-stat"><strong>Chemia · ostatnia kartkówka</strong><p>${resultLabel(saved.chemistry, 'Brak wyniku')}</p></div>
+        </div>
+      </section>
+    </div>
+  </div>`;
 }
+screen.addEventListener('click',event=>{
+  const item=event.target.closest('[data-activity]');
+  if(item) portalSave('last',item.dataset.activity);
+});
 function chooseGeo(){
   game=null;
   screen.innerHTML='<div class="bar"><button class="ghost" data-home>← Menu</button><span class="pill">Planeta Nowa 7</span></div><section class="panel"><div class="eyebrow">Radar Polski · dział 1</div><h2 tabindex="-1">Wybierz misję</h2><p>Sześć misji terenowych albo szybka powtórka z lekcji.</p><div class="actions next"><button class="primary" data-exp="menu">Rusz na ekspedycję →</button><button data-topic="mix">Powtórka mieszana · 6 pytań</button></div><div class="topic-list">'+geoTopics.map((topic,i)=>'<button data-topic="'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+topic.title+'</strong><small>s. '+topic.page+' · 4 pytania</small></button>').join('')+'</div></section>';
