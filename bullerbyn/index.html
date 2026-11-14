@@ -14,6 +14,7 @@ h1,h2,p{margin:0}h1{font:700 clamp(2rem,6vw,4rem)/.96 Georgia,serif;letter-spaci
 .route{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 12px;flex-wrap:wrap}.route label{display:flex;align-items:center;gap:8px;font-weight:700}
 button,select{font:inherit;color:inherit;border:1px solid var(--border);border-radius:11px;background:var(--card);min-height:44px;padding:6px 11px}button,summary{cursor:pointer}button:disabled{opacity:.48;cursor:default}
 :focus-visible{outline:3px solid #a55028;outline-offset:3px}
+.mode{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}.mode button[aria-pressed="true"]{background:var(--leaf);color:white;border-color:var(--leaf);font-weight:700}.mode-note{color:var(--muted);font-size:.9rem;margin-top:6px}
 progress{width:100%;display:block;height:9px;accent-color:var(--leaf)}
 .map{display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:6px;margin:12px 0 18px}
 .map button{padding:0;font-weight:700}.map button.done{background:#dcebd9}.map button[aria-current="step"]{background:var(--leaf);color:white;border-color:var(--leaf)}
@@ -39,6 +40,11 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.primary{background:var(
 <section class="chapter" aria-labelledby="title">
 <p class="kicker" id="label"></p>
 <h2 id="title" tabindex="-1"></h2>
+<div class="mode" role="group" aria-label="Rodzaj pytań">
+<button type="button" id="recall" aria-pressed="true">Przypomnij sobie rozdział</button>
+<button type="button" id="details" aria-pressed="false">Tuż po lekturze</button>
+</div>
+<p class="mode-note" id="mode-note"></p>
 <ol id="questions"></ol>
 <nav aria-label="Przejdź do rozdziału">
 <button type="button" id="prev">Wstecz</button>
@@ -447,22 +453,379 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.primary{background:var(
   "Dużo raków."
  ]
 ]</script>
+<script id="recall-data" type="application/json">[
+ [
+  "Jak wyglądało Bullerbyn, w którym mieszkała Lisa?",
+  "To mała wieś z trzema zagrodami: Północną, Środkową i Południową.",
+  "Kto mieszkał z Lisą, a z kim mogła się bawić w sąsiednich zagrodach?",
+  "W domu miała dwóch braci, Lassego i Bossego. Obok mieszkali Anna, Britta i Olle.",
+  "Dlaczego Lisa raz czuła się duża, a innym razem mała?",
+  "Mama uważała ją za dość dużą, by pomagać w domu, a bracia za małą, by dołączyć do ich zabawy."
+ ],
+ [
+  "Dlaczego życie w jednym pokoju z braćmi bywało dla Lisy męczące?",
+  "Mieli inne pomysły na spędzanie wieczoru, a bracia często stawiali na swoim.",
+  "Jak bracia próbowali nastraszyć Lisę?",
+  "Opowiadali o duchach i sprawiali, że zwykłe rzeczy wyglądały jak ich sprawka.",
+  "Czy bracia i Lisa zawsze się kłócili? Opowiedz, co robili razem.",
+  "Potrafili też wspólnie się bawić i odwiedzać Ollego."
+ ],
+ [
+  "Jak zmieniał się nastrój Lisy w urodzinowy poranek?",
+  "Najpierw było jej przykro, bo wydawało się, że nie dostała prezentu. Potem bardzo się ucieszyła.",
+  "Na czym polegała niespodzianka przygotowana przez rodzinę?",
+  "Rodzina urządziła dla niej własny pokój, a tata ją tam zaprowadził.",
+  "Co ten prezent zmieniał w codziennym życiu Lisy?",
+  "Mogła mieć miejsce tylko dla siebie i przestała dzielić pokój z braćmi."
+ ],
+ [
+  "Jak Lisa spędziła urodzinowe popołudnie z przyjaciółmi?",
+  "Przyszli do niej z prezentami, jedli tort i wspólnie się bawili.",
+  "Co zauważyły dziewczynki, patrząc przez okna swoich pokoi?",
+  "Okna były naprzeciwko siebie, więc mogły się porozumiewać bez wychodzenia z domu.",
+  "Jaki wspólny pomysł na kontakt wymyśliły dzięki nowemu pokojowi Lisy?",
+  "Zrobiły pocztę na sznurku, a zimą dawały sobie znaki światłem."
+ ],
+ [
+  "Jakie wydarzenie w szkole rozpoczynało wakacje?",
+  "Uroczyste zakończenie roku szkolnego.",
+  "Jak uczniowie przygotowali się do tej uroczystości?",
+  "Udekorowali salę i przygotowali to, co mieli pokazać rodzicom.",
+  "Co dzieci pokazywały rodzicom i dlaczego ten dzień różnił się od zwykłych lekcji?",
+  "Pokazywały, czego się nauczyły. Rodzice byli gośćmi, a po uroczystości zaczynały się wakacje."
+ ],
+ [
+  "Czym dzieci zajmowały się na grządkach i jak umilały sobie pracę?",
+  "Plewiły rzepę, opowiadały sobie historie i wymyślały własne języki.",
+  "Co przerwało ich zajęcie i dokąd wtedy poszły?",
+  "Złapała je burza, więc schroniły się u Kristin.",
+  "Z jaką niespodzianką wróciły do domu po tej wizycie?",
+  "Z kociętami, które zobaczyły u Kristin."
+ ],
+ [
+  "Jak żył Svipp, zanim zaprzyjaźnił się z Ollem?",
+  "Był trzymany na łańcuchu i szewc o niego nie dbał.",
+  "Jak Olle stopniowo zdobył jego zaufanie?",
+  "Regularnie go odwiedzał, przynosił jedzenie i później się nim zajmował.",
+  "Co się zmieniło dla psa na końcu tej historii?",
+  "Tata Ollego go odkupił i pies zamieszkał z Ollem."
+ ],
+ [
+  "Opowiedz o jednym zwierzęciu z tej części i o dziecku, które się nim interesowało.",
+  "Na przykład Lisa opiekowała się królikami, Bosse miał kurę, a Lasse próbował hodować szczury.",
+  "Kogo odwiedzały dzieci, kiedy chciały posłuchać historii z dawnych lat?",
+  "Dziadziusia Anny i Britty.",
+  "Jak dzieci i dziadziuś umilali sobie wspólny czas?",
+  "Dzieci czytały mu gazety, a on opowiadał historie i częstował je smakołykami."
+ ],
+ [
+  "Jaką tajemnicę miały dziewczynki, a jaką chłopcy?",
+  "Dziewczynki znały miejsce pełne poziomek, a chłopcy zrobili kryjówki w sianie.",
+  "Jak dziewczynki odkryły sekret chłopców?",
+  "Lisa zdobyła mapę, dzięki której trafiły do kryjówek.",
+  "Czy po tej przygodzie chłopcy poznali cały sekret dziewczynek?",
+  "Nie. Dziewczynki zachowały dla siebie miejsce, gdzie poziomek było najwięcej."
+ ],
+ [
+  "Na jaką letnią przygodę zdecydowały się dzieci?",
+  "Postanowiły przenocować w stogach siana.",
+  "Co sprawiło, że noc była bardziej straszna, niż się spodziewały?",
+  "Było ciemno, słychać było różne odgłosy, a chłopcy robili dziewczynkom kawał.",
+  "Jak zakończyła się nocna przygoda?",
+  "Rano dzieci zmarzły, poszły się ogrzać i wróciły do swoich łóżek."
+ ],
+ [
+  "Skąd Lisa i Anna wzięły pomysł na ucieczkę?",
+  "Z opowieści dziadziusia o tym, jak sam uciekł w dzieciństwie.",
+  "Co dziewczynki przygotowały, żeby nie zaspać?",
+  "Umówiły się na budzenie sznurkiem i próbowały nie zasnąć dzięki gałązkom pod poduszką.",
+  "Dlaczego z ich planu ostatecznie nic nie wyszło?",
+  "Obie zasnęły, a Lisę obudzili chłopcy, nie Anna."
+ ],
+ [
+  "Co dziewczynki urządziły na pastwisku?",
+  "Własny pokoik do zabawy w szczelinie skalnej.",
+  "Jak się w nim bawiły?",
+  "Umeblowały go znalezionymi rzeczami i odgrywały życie domowe.",
+  "Co zrobiły dzieci, gdy chłopcy odkryli pokoik i zaczęli żartować?",
+  "Zostawiły zabawę w dom i poszły razem grać w piłkę."
+ ],
+ [
+  "Dlaczego dziewczynki zaczęły śledzić chłopców?",
+  "Chłopcy znikali i zachowywali się tak, jakby coś ukrywali.",
+  "Kto im pomógł i co dzięki temu znalazły?",
+  "Pies Svipp odnalazł Ollego, a dziewczynki odkryły szałas chłopców.",
+  "Jak skończyła się zabawa w tajemnice?",
+  "Chłopcy zgodzili się, by dziewczynki dołączyły do ich zabawy."
+ ],
+ [
+  "Jak wyglądała droga dzieci do szkoły po wakacjach?",
+  "Wstawały wcześnie i szły pieszo do Wielkiej Wsi, zabierając coś do jedzenia.",
+  "Dlaczego pewnego dnia zastały w szkole inną sytuację niż zwykle?",
+  "Nauczycielka była chora, a wiadomość o odwołanych lekcjach nie dotarła do Bullerbyn.",
+  "Co dzieci zrobiły, kiedy zobaczyły, że pani potrzebuje pomocy?",
+  "Zajęły się nią, rozpaliły ogień i przygotowały posiłek."
+ ],
+ [
+  "Co dzieci wymyśliły, kiedy dorośli wybrali się na przyjęcie?",
+  "Urządziły przebieranki i założyły stare ubrania dorosłych.",
+  "Co odkryły dziewczynki, kiedy poszły do Ollego?",
+  "Chłopcy też się przebrali.",
+  "Jak dzieci wykorzystały swoje stroje, żeby rozbawić dziadziusia?",
+  "Urządziły dla niego przedstawienie."
+ ],
+ [
+  "Dlaczego śnieg najpierw ucieszył dzieci, a potem stał się problemem?",
+  "Najpierw mogły się bawić na śniegu, ale silny wiatr i zaspy utrudniły powrót ze szkoły.",
+  "Gdzie dzieci schroniły się, kiedy nie mogły iść dalej?",
+  "U szewca.",
+  "Jak cała przygoda się skończyła?",
+  "Rodzice przyjechali po dzieci i bezpiecznie zabrali je do domu."
+ ],
+ [
+  "Po czym dzieci poznały, że w szkole zaczyna się przerwa świąteczna?",
+  "W ostatnim dniu dostały książki, słuchały opowiadania i śpiewały świąteczne piosenki.",
+  "Jak przygotowywały się do świąt po powrocie ze szkoły?",
+  "Zrobiły między innymi śnieżną latarnię i przygotowały papierowe ozdoby.",
+  "Gdzie i z kim spędziły wieczór przed świętami?",
+  "Poszły do dziadziusia i robiły tam ozdoby."
+ ],
+ [
+  "Co zmieniło się w Bullerbyn od początku książki?",
+  "Ollemu urodziła się siostra i w wiosce było już siedmioro dzieci.",
+  "Kto w Środkowej Zagrodzie pomagał rodzinie Lisy w codziennych pracach?",
+  "Agata i Oskar.",
+  "Dlaczego dzieci z innych zagród też mówiły na dziadka Anny i Britty „dziadziuś”?",
+  "Był im bliski i traktowały go jak własnego dziadka."
+ ],
+ [
+  "Jak dzieci przygotowywały święta w Bullerbyn?",
+  "Między innymi piekły pierniki, przygotowywały prezenty i ubierały choinki.",
+  "Co połączyło pieczenie pierników ze świąteczną zabawą?",
+  "Wielki piernik był nagrodą w konkursie na odgadnięcie liczby ziaren. Wygrał dziadziuś.",
+  "Jak mieszkańcy spędzali wigilijny wieczór?",
+  "Jedli uroczystą kolację, wręczali prezenty, odwiedzali się, śpiewali i tańczyli."
+ ],
+ [
+  "Jak zwykłe sanie stały się zabawą dla całej wsi?",
+  "Dzieci zaczęły zjeżdżać, a ich ojcom tak się to spodobało, że też spróbowali.",
+  "Jak dzieci zmieniły zjeżdżanie w prawdziwą przygodę?",
+  "Urządziły wyścig i wyobraziły sobie, że sanie są okrętami.",
+  "Co zakończyło wyścig i zabawę na śniegu?",
+  "Chłopcy wpadli w zaspę, a zmarznięte i głodne dzieci wróciły do domów."
+ ],
+ [
+  "Co dzieci postanowiły zrobić w sylwestra?",
+  "Czuwać razem do północy i przywitać Nowy Rok.",
+  "Jaką zabawę na ten wieczór podsunął im dziadziuś?",
+  "Wróżenie z kształtów roztopionego ołowiu.",
+  "Czy wszystkim udało się doczekać Nowego Roku? Co się wydarzyło?",
+  "Bosse zasnął. Pozostałe dzieci dotrwały do północy i złożyły sobie życzenia."
+ ],
+ [
+  "Dokąd rodziny wybrały się w ferie i jak tam dotarły?",
+  "Pojechały saniami do cioci Jenny.",
+  "Jak dzieci zamieniły pokój u cioci w miejsce z bajki?",
+  "Udawały, że to las, Nina grała czarownicę, a skrzynia stała się jej piecem.",
+  "Jak dorośli dołączyli do zabawy podczas wizyty?",
+  "Bawili się razem z dziećmi w fanty i ciuciubabkę."
+ ],
+ [
+  "Dlaczego lód na jeziorze stał się niebezpieczny?",
+  "Dorośli wyrąbali w nim przerębel, żeby zebrać lód do lodowni.",
+  "Co zrobił Lasse, choć dzieci obiecały uważać?",
+  "Ślizgał się zbyt blisko otworu i wpadł do wody.",
+  "Jak pozostałe dzieci zareagowały, gdy Lasse potrzebował pomocy?",
+  "Wspólnie go wyciągnęły, a rękę podał mu Bosse."
+ ],
+ [
+  "Jak wyglądała nauka w szkole, skoro w okolicy mieszkało mało dzieci?",
+  "Wszystkie dzieci uczyły się razem pod opieką jednej nauczycielki.",
+  "Co zrobili chłopcy, gdy Britta miała zastępować panią?",
+  "Zaczęli hałasować, a potem za karę musieli zostać po lekcjach.",
+  "Jaki żart uczniowie przygotowali nauczycielce na prima aprilis?",
+  "Przyszli wcześniej i przestawili zegar, żeby pomyślała, że zaspała."
+ ],
+ [
+  "Jak dzieci bawiły się przed Wielkanocą z karteczkami i kostiumami?",
+  "Przypinały sobie kartki z żartami, a w Wielki Czwartek przebierały się za Baby Jagi.",
+  "Jakie zabawy z jajkami urządziły dzieci?",
+  "Malowały pisanki, jadły jajka na wyścigi i szukały jajek ze słodyczami.",
+  "Co dzieci robiły u dziadziusia pod koniec wielkanocnej zabawy?",
+  "Robiły kogel-mogel i słuchały, jak świętowano w jego dzieciństwie."
+ ],
+ [
+  "Po co Lisa i Anna poszły do Wielkiej Wsi?",
+  "Miały zrobić zakupy dla swoich domów i innych mieszkańców.",
+  "Dlaczego proste zakupy zmieniły się w długą wyprawę?",
+  "Dziewczynki polegały na pamięci, a po wyjściu przypominały sobie kolejne brakujące rzeczy.",
+  "Jak w końcu dziewczynki wróciły do Bullerbyn?",
+  "Zabrał je na wóz wracający z młyna Jan."
+ ],
+ [
+  "Co dzieci usłyszały w młynie, że postanowiły wrócić tam nocą?",
+  "Jan opowiedział im o Wodniku, który nocą grał muzykę.",
+  "Jak dzieci próbowały podejść do miejsca, gdzie miał być Wodnik?",
+  "Poszły tam po ciemku. Lasse ruszył pierwszy, żeby go nie spłoszyć.",
+  "Jak wyjaśniła się tajemnica muzyki?",
+  "Grał Lasse, który naśladował Wodnika przy użyciu grzebienia."
+ ],
+ [
+  "Co Lisa lubiła w posiadaniu braci, choć marzyła o siostrze?",
+  "Bracia potrafili jej bronić i opowiadać ciekawe historie.",
+  "Jak zmieniło się to, co inne dzieci myślały o siostrze Ollego?",
+  "Najpierw nie zachwyciły się niemowlęciem. Na chrzcinach uznały, że Kerstin jest śliczna.",
+  "Jak później Lisa i Anna spędzały czas z Kerstin?",
+  "Odwiedzały ją i pomagały przy kąpieli, zmianie pieluszki oraz spacerze."
+ ],
+ [
+  "Co Lisa zrobiła, kiedy deszcz zatrzymał ją w domu?",
+  "Upiekła ciasto i pomalowała stół na werandzie.",
+  "Jak zajęcia Lisy wpłynęły na to, co robiły inne dzieci?",
+  "Koleżanki też upiekły ciasto, a bracia chcieli coś pomalować.",
+  "Co dzieci znalazły na strychu i do jakiej kolejnej przygody je to zachęciło?",
+  "Znalazły wiadomość o ukrytych perłach i postanowiły szukać skarbu."
+ ],
+ [
+  "Po co dzieci wybrały się na wyspę?",
+  "Chciały sprawdzić wiadomość o ukrytych perłach.",
+  "Skąd dziewczynki wiedziały, że ktoś zrobił im kawał?",
+  "W miejscu skarbu znalazły puszkę z żartobliwą wiadomością zamiast pereł.",
+  "Co zrobiły, żeby tym razem żart był na ich korzyść?",
+  "Podmieniły zawartość puszki i zostawiły chłopcom własny żart."
+ ],
+ [
+  "Dlaczego Lisa i Anna zaczęły szukać sposobu, żeby sprawić innym radość?",
+  "Zainspirowała je rozmowa w szkole z nauczycielką.",
+  "Podaj przykład, kiedy ich pomysł nie spodobał się tak, jak się spodziewały. Dlaczego?",
+  "Na przykład Agata wolała, żeby wyszły i nie deptały mokrej podłogi.",
+  "Co przyniosło radość na końcu tej historii?",
+  "Podarowały chorej Marcie lalkę i książkę, z których się ucieszyła."
+ ],
+ [
+  "Jak mieszkańcy świętowali urodziny dziadziusia?",
+  "Odwiedzali go, składali życzenia, a tata Anny i Britty wygłosił przemówienie.",
+  "Jak dziadziuś dowiedział się, co napisali ludzie, którzy nie przyszli osobiście?",
+  "Dzieci odczytały mu przesłane życzenia.",
+  "Jakie postanowienie na przyszłość podjęły dziewczynki?",
+  "Że zostaną w Bullerbyn także wtedy, gdy dorosną."
+ ],
+ [
+  "Kto przyjechał w odwiedziny i jak dzieci zareagowały na gości?",
+  "Przyjechała elegancka pani z córką Moniką. Dzieci przyszły ją poznać, a Lasse chciał się popisać.",
+  "Jak zakończył się popis Lassego?",
+  "Na szczudłach zahaczył o wiadro z karmą dla świń.",
+  "Co odpowiedziała mama Lisy, kiedy gość zapytał ją o nudę w tak małej wiosce?",
+  "Miała tyle zajęć, że nie miała czasu się nudzić."
+ ],
+ [
+  "Co mogło się stać z jagnięciem, gdyby Lisa się nim nie zajęła?",
+  "Mogło umrzeć z głodu, bo jego matka nie miała mleka.",
+  "Jak Lisa opiekowała się Pontusem, gdy był mały i kiedy trochę podrósł?",
+  "Najpierw karmiła go z butelki, potem nauczyła go pić ze spodka.",
+  "Po czym było widać, że Pontus przywiązał się do Lisy?",
+  "Przybiegał do niej, kiedy pojawiała się na pastwisku."
+ ],
+ [
+  "Jak bracia podsunęli Lisie pomysł zabrania Pontusa do szkoły?",
+  "Powiedzieli, że baranka nie da się tam zabrać. Lisa chciała im pokazać, że można.",
+  "Dlaczego nauczycielka zgodziła się, żeby Pontus został na lekcji?",
+  "Pasował do tematu o zwierzętach hodowlanych.",
+  "Jak Pontus zachowywał się w szkole i zaraz po wyjściu?",
+  "W klasie zachowywał się spokojnie, a po wyjściu rzucił się do biegu."
+ ],
+ [
+  "Dlaczego mama Lisy zastanawiała się, co dzieci robią po lekcjach?",
+  "Droga powrotna trwała im wyjątkowo długo.",
+  "Opowiedz o jednej rzeczy, która zatrzymała dzieci po drodze.",
+  "Na przykład kupowały cukierki, bawiły się w wodzie albo zaglądały do ptasiego gniazda.",
+  "Co się stało, gdy szewc myślał, że dzieci potrzebują pomocy?",
+  "Okazało się, że się bawiły. Rozzłościł się, a chłopcy zapomnieli zabrać butów Agaty."
+ ],
+ [
+  "Co martwiło Ollego i jak próbowali mu pomóc koledzy?",
+  "Bał się wyrwać ruszający się ząb. Chłopcy podpowiadali mu, jak to zrobić.",
+  "Co Lasse zrobił, gdy Olle zasnął?",
+  "Pociągnął za nitkę przywiązaną do zęba i go wyrwał.",
+  "Jak Olle zareagował, kiedy dowiedział się, co się stało?",
+  "Podziękował przyjaciołom."
+ ],
+ [
+  "Jakie miejsce było wyjątkowe dla Lisy i Anny?",
+  "Parów z kwiatami i strumykiem, do którego chętnie chodziły.",
+  "Co dziewczynki wymyśliły w swojej zabawie?",
+  "Udawały księżniczki i stworzyły sobie bajkowy świat.",
+  "Jak skończyła się próba zamienienia żaby w księcia?",
+  "Żaba uciekła. Dziewczynki uznały, że i tak nie są prawdziwymi księżniczkami."
+ ],
+ [
+  "Jaką tajemnicę chcieli zachować chłopcy?",
+  "Ukryli swoje mleczne zęby w Skrzyni Mędrców i nie chcieli pokazać jej dziewczynkom.",
+  "Jak dziewczynki dowiedziały się o skrzyni więcej, niż chłopcy planowali?",
+  "Ukryły się na strychu i odkryły, co chłopcy chowają.",
+  "W jaki sposób dziewczynki zamieniły tajemnicę chłopców w kawał?",
+  "Dołożyły do skrzyni sztuczną szczękę Agaty."
+ ],
+ [
+  "Co dzieci robiły w skałach, zanim popłynęły na wyspę?",
+  "Bawiły się, a przed burzą schowały się w jaskini.",
+  "Co sprawiło, że zabawa na wyspie zamieniła się w ucieczkę?",
+  "Natknęły się na groźnego barana, który ruszył za Lassem.",
+  "Jak Lasse wydostał się z pułapki?",
+  "Uciekł z szopy przez otwór w dachu."
+ ],
+ [
+  "Jak mieszkańcy Bullerbyn obchodzili noc świętojańską?",
+  "Tańczyli wokół słupa udekorowanego kwiatami.",
+  "Na czym polegała wróżba dziewczynek i czego chciały się dowiedzieć?",
+  "Miały w milczeniu przejść przez płoty i położyć zioła pod poduszką, żeby przyśnił im się przyszły mąż.",
+  "Jak skończyła się wróżba Lisy?",
+  "Chłopcy przeszkadzali dziewczynkom. Lisa położyła zioła pod poduszką, ale nic jej się nie przyśniło."
+ ],
+ [
+  "Co dzieci chciały zrobić z wiśniami i skąd wzięły ten pomysł?",
+  "Chciały je sprzedać. Lasse przeczytał w gazecie, że można na nich zarobić.",
+  "Dlaczego pierwsza próba sprzedaży się nie udała i co dzieci zmieniły?",
+  "Kierowcy mijali stoisko. Dzieci przeniosły się na zakręt, gdzie samochody zwalniały.",
+  "Co dzieci zrobiły z pieniędzmi po udanej sprzedaży?",
+  "Podzieliły się po równo. Część wydały na poczęstunek, a część odłożyły."
+ ],
+ [
+  "Jakiego zadania podjęły się Lisa i Anna?",
+  "Opiekowały się małą Kerstin.",
+  "Co utrudniało dziewczynkom opiekę? Opowiedz o jednej przygodzie.",
+  "Kerstin między innymi weszła do rowu z wodą, nie chciała jeść ani spać i pobrudziła się pastą.",
+  "Jak po tym dniu zmieniło się zdanie dziewczynek o pracy opiekunki?",
+  "Zobaczyły, że opieka jest trudniejsza, niż myślały, i zwątpiły, czy się do niej nadają."
+ ],
+ [
+  "Co dzieci robiły razem z ojcami nad jeziorem?",
+  "Łowiły raki i spędziły noc nad wodą.",
+  "Co wydarzyło się wieczorem przy ognisku?",
+  "Lasse nastraszył dziewczynki opowieścią, a tata Ollego rozbawił towarzystwo.",
+  "Co dzieci zrobiły następnego ranka i jak Lisa wspominała koniec wyprawy?",
+  "Wyciągnęły kosze pełne raków. Lisa wracała zmęczona, ale szczęśliwa."
+ ]
+]</script>
 <script>
 'use strict';
 const el = id => document.getElementById(id);
 const chapters = JSON.parse(el('chapter-data').textContent);
+const recallQuestions = JSON.parse(el('recall-data').textContent);
 const starts = [0,17,32,44];
 const key = 'bullerbyn-reading-quest-v1';
 let selected = 0;
+let mode = 'recall';
 let done = new Set();
 try {
   const saved = JSON.parse(localStorage.getItem(key));
   if (saved && Number.isInteger(saved.selected) && chapters[saved.selected]) selected = saved.selected;
+  if (saved?.mode === 'details') mode = 'details';
   if (Array.isArray(saved?.done)) done = new Set(saved.done.filter(i => Number.isInteger(i) && chapters[i]));
 } catch {}
 
 function save() {
-  try { localStorage.setItem(key,JSON.stringify({selected,done:[...done]})); } catch {}
+  try { localStorage.setItem(key,JSON.stringify({selected,done:[...done],mode})); } catch {}
 }
 
 function renderProgress() {
@@ -492,26 +855,47 @@ function render(focus=false) {
   const chapter = chapters[selected];
   el('title').textContent = chapter[0];
   el('label').textContent = 'Rozdział ' + (selected+1) + ' z ' + chapters.length;
-  el('questions').replaceChildren();
-  for (let i=1;i<chapter.length;i+=2) {
-    const item = document.createElement('li');
-    const prompt = document.createElement('strong');
-    prompt.textContent = chapter[i];
-    const details = document.createElement('details');
-    const summary = document.createElement('summary');
-    summary.textContent = 'Odpowiedź dla dorosłego';
-    const answer = document.createElement('p');
-    answer.textContent = chapter[i+1];
-    details.append(summary,answer);
-    item.append(prompt,details);
-    el('questions').append(item);
-  }
+  renderQuestions();
   el('prev').disabled = selected===0;
   el('next').disabled = selected===chapters.length-1;
   el('status').textContent = '';
   renderProgress();
   if (focus) el('title').focus();
 }
+
+function renderQuestions() {
+  const isRecall = mode === 'recall';
+  const questions = isRecall ? recallQuestions[selected] : chapters[selected].slice(1);
+  el('recall').setAttribute('aria-pressed',String(isRecall));
+  el('details').setAttribute('aria-pressed',String(!isRecall));
+  el('mode-note').textContent = isRecall
+    ? 'Opowiedz własnymi słowami o najważniejszych wydarzeniach.'
+    : 'Przypomnij sobie szczegóły z przeczytanego rozdziału.';
+  el('questions').replaceChildren();
+  for (let i=0;i<questions.length;i+=2) {
+    const item = document.createElement('li');
+    const prompt = document.createElement('strong');
+    prompt.textContent = questions[i];
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'Odpowiedź dla dorosłego';
+    const answer = document.createElement('p');
+    answer.textContent = questions[i+1];
+    details.append(summary,answer);
+    item.append(prompt,details);
+    el('questions').append(item);
+  }
+}
+
+function changeMode(nextMode) {
+  if (mode === nextMode) return;
+  mode = nextMode;
+  save();
+  renderQuestions();
+}
+
+el('recall').addEventListener('click',()=>changeMode('recall'));
+el('details').addEventListener('click',()=>changeMode('details'));
 
 function openChapter(index) {
   if (!chapters[index]) return;
