@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fff7e7">
+<title>Śladami dzieci z Bullerbyn</title>
+<style>
+:root{--ink:#253b2c;--muted:#4b6153;--paper:#fff7e7;--card:#fffdf7;--leaf:#245c42;--border:#ddd9c2}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:1rem/1.5 "DM Sans",system-ui,sans-serif}main{max-width:950px;margin:auto;padding:clamp(14px,4vw,38px)}
+.hero{background:#e6efde;border-radius:24px;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:clamp(18px,4vw,34px);overflow:hidden}
+h1,h2,p{margin:0}h1{font:700 clamp(2rem,6vw,4rem)/.96 Georgia,serif;letter-spacing:-.04em;max-width:11ch}.hero p{margin-top:12px;color:var(--muted)}
+.art{font-size:clamp(2rem,5vw,3.5rem);white-space:nowrap;line-height:1.3;text-align:center;letter-spacing:-.12em}.art span{display:block;font-size:.7em;letter-spacing:.06em}
+.route{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 12px;flex-wrap:wrap}.route label{display:flex;align-items:center;gap:8px;font-weight:700}
+button,select{font:inherit;color:inherit;border:1px solid var(--border);border-radius:11px;background:var(--card);min-height:44px;padding:6px 11px}button,summary{cursor:pointer}button:disabled{opacity:.48;cursor:default}
+:focus-visible{outline:3px solid #a55028;outline-offset:3px}
+progress{width:100%;display:block;height:9px;accent-color:var(--leaf)}
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(44px,1fr));gap:6px;margin:12px 0 18px}
+.map button{padding:0;font-weight:700}.map button.done{background:#dcebd9}.map button[aria-current="step"]{background:var(--leaf);color:white;border-color:var(--leaf)}
+.chapter{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:clamp(16px,4vw,32px);box-shadow:0 10px 35px #4a40200c}
+.kicker{font-size:.83rem;color:var(--muted);font-weight:750}h2{font:700 clamp(1.55rem,5vw,2.6rem)/1.13 Georgia,serif;margin-top:3px}
+ol{padding-left:1.75rem;margin:15px 0 0}li{padding:12px 0;border-bottom:1px solid var(--border)}li::marker{font-weight:750;color:var(--leaf)}details{margin-top:6px}summary{color:var(--leaf);width:fit-content;font-size:.9rem;padding:5px 0}details p{background:#eef3e8;border-radius:9px;padding:8px 10px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.primary{background:var(--leaf);color:white;border-color:var(--leaf);font-weight:700}footer{margin-top:17px;font-size:.84rem;color:var(--muted)}footer a{color:inherit}.status{min-height:1.5em;margin-top:8px;color:var(--leaf)}
+@media(max-width:440px){.art{display:none}nav button{flex:1}.route{align-items:flex-start}}
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+<div><h1>Śladami dzieci z Bullerbyn</h1><p>Wybierz przeczytany rozdział i opowiedz, co się w nim wydarzyło.</p></div>
+<div class="art" aria-hidden="true">🏡 🏠 🏡<span>🌳 · 🌿 · 🌳</span></div>
+</header>
+<div class="route">
+<label for="part">Część książki<select id="part"><option value="0">I · rozdziały 1–17</option><option value="1">II · rozdziały 18–32</option><option value="2">III · rozdziały 33–44</option></select></label>
+<strong id="tally"></strong>
+</div>
+<progress id="progress" max="44" value="0" aria-label="Omówione rozdziały"></progress>
+<div id="map" class="map" role="group" aria-label="Wybierz rozdział"></div>
+<section class="chapter" aria-labelledby="title">
+<p class="kicker" id="label"></p>
+<h2 id="title" tabindex="-1"></h2>
+<ol id="questions"></ol>
+<nav aria-label="Przejdź do rozdziału">
+<button type="button" id="prev">Wstecz</button>
+<button type="button" id="mark" class="primary"></button>
+<button type="button" id="next">Dalej</button>
+</nav>
+<p class="status" id="status" role="status"></p>
+</section>
+<footer><a href="https://lubimyczytac.pl/ksiazka/209271/dzieci-z-bullerbyn">Spis rozdziałów wydania</a> · <a href="https://www.bryk.pl/lektury/astrid-lindgren/dzieci-z-bullerbyn.streszczenie-szczegolowe">Opracowanie wydarzeń</a></footer>
+</main>
+<script id="chapter-data" type="application/json">[
+ [
+  "Trzy zagrody",
+  "Kto opowiada o dzieciach z Bullerbyn?",
+  "Lisa.",
+  "Z kim Lisa mieszka w Środkowej Zagrodzie?",
+  "Z rodzicami i braćmi, Lassem i Bossem.",
+  "Kto z dzieci mieszka w Północnej, a kto w Południowej Zagrodzie?",
+  "W Północnej mieszkają Britta i Anna, a w Południowej Olle."
+ ],
+ [
+  "Kłopoty z braćmi",
+  "Dlaczego Lisie trudno było zasnąć albo poczytać we wspólnym pokoju?",
+  "Bracia woleli się bawić albo gasili światło, żeby opowiadać straszne historie.",
+  "Jak bracia sprawili, że krzesło wyglądało, jakby ruszało się samo?",
+  "Przywiązali do niego nitkę i za nią ciągnęli.",
+  "Jak można było dostać się z domu Lisy do Ollego bez schodzenia na ziemię?",
+  "Po gałęziach lipy."
+ ],
+ [
+  "Urodzinowa niespodzianka",
+  "Ile lat skończyła Lisa?",
+  "Osiem.",
+  "Dlaczego na początku urodzin zrobiło jej się przykro?",
+  "Wydawało jej się, że nie dostała prezentu.",
+  "Co tata pokazał Lisie i dlaczego ten prezent był dla niej ważny?",
+  "Własny pokój. Wcześniej dzieliła pokój z braćmi."
+ ],
+ [
+  "Poczta między oknami",
+  "Co Lisa dostała od Anny i Britty?",
+  "Książkę z bajkami.",
+  "Jak dziewczynki przesyłały sobie wiadomości między oknami?",
+  "W pudełku po cygarach przesuwanym po sznurku.",
+  "Co oznaczały trzy błyski latarki?",
+  "Żeby przyjść, bo druga osoba ma coś ważnego do powiedzenia."
+ ],
+ [
+  "Początek wakacji",
+  "Dokąd dzieci z Bullerbyn chodziły do szkoły?",
+  "Do Wielkiej Wsi.",
+  "Jak uczniowie przystroili salę na zakończenie roku?",
+  "Roślinami i chorągiewkami.",
+  "Po co na zakończenie roku przyszli rodzice?",
+  "Żeby zobaczyć i usłyszeć, czego dzieci nauczyły się w szkole."
+ ],
+ [
+  "Kocięta u Kristin",
+  "Jaką pracę dzieci wykonywały przy rzepie?",
+  "Wyrywały chwasty.",
+  "Dlaczego dzieci schroniły się u Kristin?",
+  "Zaskoczyła je burza.",
+  "Jakiego kotka zabrała Lisa do domu?",
+  "Mruczka."
+ ],
+ [
+  "Pies Ollego",
+  "Do kogo należał Svipp, zanim zamieszkał z Ollem?",
+  "Do szewca Grzecznego.",
+  "Co Olle robił, żeby pies mu zaufał?",
+  "Odwiedzał go, przynosił mu kości, a później karmił go i wyprowadzał.",
+  "Jak to się stało, że Svipp został u Ollego na stałe?",
+  "Tata Ollego odkupił psa od szewca."
+ ],
+ [
+  "Zwierzęta i dziadziuś",
+  "Jakimi zwierzętami opiekowała się Lisa?",
+  "Królikami.",
+  "Dlaczego Albert dostał później imię Albertyna?",
+  "Okazało się, że jest kurą.",
+  "Co dzieci robiły dla dziadziusia podczas odwiedzin?",
+  "Czytały mu gazety."
+ ],
+ [
+  "Poziomki i mapa",
+  "Co dziewczynki odkryły na przejażdżce?",
+  "Miejsce, w którym rosło dużo poziomek.",
+  "Gdzie chłopcy zrobili sobie tajne kryjówki?",
+  "W sianie.",
+  "Jak Lisa przypadkiem zdobyła wskazówkę prowadzącą do kryjówek?",
+  "Zobaczyła mapę przesyłaną po sznurku i ją przechwyciła."
+ ],
+ [
+  "Noc w sianie",
+  "Co dziewczynki zabrały na noc do stogu?",
+  "Okrycia i kanapki.",
+  "Kto wydawał odgłosy, które przestraszyły dziewczynki?",
+  "Chłopcy, którzy robili im kawał.",
+  "Dlaczego dzieci wcześniej niż planowały wróciły do domów?",
+  "Rano zmarzły. Ogrzały się i wróciły do własnych łóżek."
+ ],
+ [
+  "Plan ucieczki",
+  "Czyja opowieść podsunęła Annie i Lisie pomysł ucieczki?",
+  "Opowieść dziadziusia o jego ucieczce w dzieciństwie.",
+  "Jak Anna miała obudzić Lisę?",
+  "Pociągnąć za sznurek przywiązany do palca u nogi Lisy.",
+  "Kto naprawdę pociągnął za sznurek i co w tym czasie robiła Anna?",
+  "Pociągnęli chłopcy. Anna wciąż spała."
+ ],
+ [
+  "Pokoik w skale",
+  "Gdzie dziewczynki urządziły pokoik?",
+  "W szczelinie między skałami, na pastwisku.",
+  "Czego użyły do urządzenia pokoiku?",
+  "Na przykład kawałków dywanów, starej chusty i skrzynek po cukrze.",
+  "W kogo bawiły się dziewczynki w swoim pokoiku?",
+  "Britta była panią domu, Lisa udawała Agatę, a Anna dziecko."
+ ],
+ [
+  "Śladami chłopców",
+  "Kto pomógł dziewczynkom znaleźć chłopców i na czyj trop wpadł?",
+  "Pies Svipp odnalazł Ollego.",
+  "Z czego chłopcy zbudowali szałas?",
+  "Z gałęzi i końskiej derki.",
+  "Co zrobiły dziewczynki, kiedy odkryły zabawę chłopców?",
+  "Dołączyły do niej, dostały własne przydomki i bawiły się razem z chłopcami."
+ ],
+ [
+  "Powrót do szkoły",
+  "Dlaczego dzieci z Bullerbyn musiały wcześnie wychodzić z domu?",
+  "Szkoła była w innej wsi, a dzieci szły tam pieszo.",
+  "Dlaczego pewnego dnia w szkole nie było lekcji?",
+  "Nauczycielka zachorowała.",
+  "Jak dzieci pomogły chorej nauczycielce?",
+  "Rozpaliły ogień i przygotowały obiad. Odwiedziły ją też następnego dnia."
+ ],
+ [
+  "Przebieranki na strychu",
+  "Skąd dziewczynki wzięły stroje do przebieranek?",
+  "Ze strychu, gdzie leżały stare ubrania.",
+  "W co przebrała się Britta?",
+  "W męskie ubrania.",
+  "Komu przebrane dzieci urządziły przedstawienie?",
+  "Dziadziusiowi."
+ ],
+ [
+  "Śnieg odcina drogę",
+  "Dlaczego dzieci postanowiły wrócić do domu mimo śnieżycy?",
+  "Bały się, że rodzice będą się niepokoić.",
+  "U kogo zatrzymały się, gdy nie mogły iść dalej?",
+  "U szewca Grzecznego.",
+  "Kto pomógł im wrócić do Bullerbyn?",
+  "Rodzice przyjechali po nie z pługiem śnieżnym."
+ ],
+ [
+  "Przedświąteczne przygotowania",
+  "Co nauczycielka podarowała dzieciom przed przerwą świąteczną?",
+  "Książki z bajkami.",
+  "Po co dzieci kupiły kolorowy papier?",
+  "Żeby zrobić ozdoby na choinkę.",
+  "Co dzieci zbudowały ze śniegu?",
+  "Śnieżną latarnię."
+ ],
+ [
+  "Nowa mieszkanka",
+  "Czyim dziadkiem był dziadziuś?",
+  "Anny i Britty.",
+  "Kto oprócz rodziny Lisy mieszkał i pracował w Środkowej Zagrodzie?",
+  "Agata i Oskar.",
+  "Dlaczego w Bullerbyn było już siedmioro dzieci?",
+  "Ollemu urodziła się siostra."
+ ],
+ [
+  "Gwiazdka w zagrodach",
+  "Co trzeba było odgadnąć, żeby wygrać wielki piernik?",
+  "Ile ziaren grochu jest w butelce.",
+  "Kto wygrał konkurs?",
+  "Dziadziuś.",
+  "Komu dzieci zaniosły małą choinkę i słodycze?",
+  "Kristin z Zagajnika."
+ ],
+ [
+  "Wyścig po śniegu",
+  "Do czego zwykle służyły sanie, które wyciągnął Lasse?",
+  "Do wożenia drewna.",
+  "W co zamieniły się sanie w wyobraźni dzieci?",
+  "W okręty.",
+  "Co stało się z saniami chłopców podczas wyścigu?",
+  "Wpadły w zaspę, a Lasse nabił sobie guza."
+ ],
+ [
+  "Czekanie na Nowy Rok",
+  "Do której godziny dzieci chciały nie zasnąć i dlaczego?",
+  "Do północy, żeby powitać Nowy Rok.",
+  "Z czego dzieci wróżyły i jaki kształt ucieszył Lisę?",
+  "Z ołowiu. Lisa zobaczyła kształt przypominający rower.",
+  "Kto zasnął przed północą?",
+  "Bosse."
+ ],
+ [
+  "W odwiedzinach u cioci Jenny",
+  "Czym rodziny pojechały do cioci Jenny?",
+  "Saniami.",
+  "Kto grał czarownicę i co udawało jej piec?",
+  "Nina. Piecem w zabawie była skrzynia.",
+  "Jaką zabawkę dziewczynki podziwiały u córek cioci?",
+  "Domek dla lalek."
+ ],
+ [
+  "Wypadek na lodzie",
+  "Dlaczego w lodzie był wycięty przerębel?",
+  "Dorośli wycinali lód do lodowni.",
+  "Dlaczego Lasse wpadł do wody?",
+  "Ślizgał się zbyt blisko przerębla.",
+  "Jak dzieci wyciągnęły Lassego?",
+  "Położyły się na lodzie i trzymały się nawzajem. Bosse sięgnął po rękę Lassego."
+ ],
+ [
+  "Żarty w szkole",
+  "Jaka zabawka rozśmieszyła klasę, gdy zakwiczała?",
+  "Dmuchana świnka.",
+  "Kogo pani poprosiła o zastąpienie jej w klasie?",
+  "Brittę.",
+  "Jak dzieci próbowały przekonać panią w prima aprilis, że zaspała?",
+  "Przyszły bardzo wcześnie i przestawiły szkolny zegar."
+ ],
+ [
+  "Wielkanocne zwyczaje",
+  "Jakiego psikusa dzieci robiły sobie nawzajem za pomocą karteczek?",
+  "Przypinały sobie do pleców kartki ze śmiesznymi napisami.",
+  "Za kogo przebrały się w Wielki Czwartek?",
+  "Za Baby Jagi.",
+  "Na czym polegał konkurs z jajkami i kto wygrał?",
+  "Trzeba było zjeść jak najwięcej jajek na twardo. Wygrał Bosse."
+ ],
+ [
+  "Zakupy z pamięci",
+  "Dlaczego Lisa nie zapisała listy zakupów?",
+  "Nie znalazła ołówka i uznała, że zapamięta zakupy.",
+  "Co dziewczynki robiły po drodze, żeby zapamiętać zakupy?",
+  "Powtarzały listę i ułożyły piosenkę.",
+  "Dlaczego kilka razy wracały do sklepu?",
+  "Po drodze przypominały sobie kolejne rzeczy, których nie kupiły."
+ ],
+ [
+  "Nocne spotkanie z Wodnikiem",
+  "Kto opowiedział dzieciom o Wodniku?",
+  "Młynarz Jan.",
+  "Dlaczego dzieci wybrały się do młyna nocą?",
+  "Chciały zobaczyć Wodnika, który według opowieści grał w nocy.",
+  "Kto naprawdę grał i na czym?",
+  "Lasse grał na grzebieniu."
+ ],
+ [
+  "Mała Kerstin",
+  "Jak Olle mówił o siostrzyczce, gdy pozostałym dzieciom wydawała się pomarszczona?",
+  "Uważał, że jest najpiękniejsza.",
+  "Podczas jakiej uroczystości dzieci zmieniły zdanie o dziewczynce?",
+  "Podczas jej chrzcin.",
+  "Jak Anna i Lisa opiekowały się małą Kerstin?",
+  "Między innymi wykąpały ją, zmieniły pieluszkę i zabrały na spacer."
+ ],
+ [
+  "Pomysły na deszcz",
+  "Co Lisa upiekła, kiedy nudziła się w domu?",
+  "Ciasto.",
+  "Co mama zaproponowała Lisie do pomalowania?",
+  "Stół na werandzie.",
+  "Jaką wiadomość dzieci znalazły na strychu?",
+  "Kartkę o perłach ukrytych na wyspie."
+ ],
+ [
+  "Skarb na wyspie",
+  "Gdzie dziewczynki znalazły puszkę?",
+  "Pod stosem kamieni na wyspie.",
+  "Co było w puszce zamiast pereł?",
+  "Kartka z żartem chłopców.",
+  "Jak dziewczynki odwróciły żart?",
+  "Włożyły do puszki baranie bobki i zostawiły wiadomość, że to prawdziwe perły."
+ ],
+ [
+  "Jak sprawić komuś radość",
+  "Co zainspirowało Lisę i Annę do robienia innym przyjemności?",
+  "Słowa nauczycielki.",
+  "Dlaczego Agacie sprawiłoby przyjemność, gdyby dziewczynki wyszły z kuchni?",
+  "Myła podłogę i nie chciała, żeby deptały po mokrej.",
+  "Komu w końcu zrobiły przyjemność i jakie dały prezenty?",
+  "Chorej koleżance Marcie. Lisa dała lalkę, a Anna książkę z bajkami."
+ ],
+ [
+  "Osiemdziesiąte urodziny",
+  "Ile lat skończył dziadziuś?",
+  "Osiemdziesiąt.",
+  "Jak dzieci pomogły mu poznać życzenia przysłane pocztą?",
+  "Przeczytały mu je na głos.",
+  "Co dziewczynki postanowiły w sprawie swojej przyszłości w Bullerbyn?",
+  "Że zostaną w Bullerbyn także jako dorosłe."
+ ],
+ [
+  "Goście w Bullerbyn",
+  "Kto przyjechał do Bullerbyn w odwiedziny?",
+  "Elegancka pani i jej córka Monika.",
+  "Co Lasse robił przed gośćmi i w co przy tym zahaczył?",
+  "Chodził na szczudłach i zahaczył o wiadro z karmą dla świń.",
+  "Co Monika podarowała Lisie na pożegnanie?",
+  "Broszkę z czerwonych koralików."
+ ],
+ [
+  "Jagnię Lisy",
+  "Dlaczego jagnię potrzebowało pomocy Lisy?",
+  "Jego mama nie miała mleka.",
+  "Czym Lisa je karmiła na początku?",
+  "Mlekiem z butelki Kerstin.",
+  "Jak Pontus reagował, gdy widział Lisę na pastwisku?",
+  "Przybiegał do niej."
+ ],
+ [
+  "Baranek w klasie",
+  "Dlaczego Lisa chciała zabrać Pontusa do szkoły?",
+  "Bracia twierdzili, że baranka nie da się tam zabrać. Lisa chciała pokazać, że można.",
+  "Jak Lisa wyjaśniła nauczycielce obecność Pontusa?",
+  "Miał być przykładem zwierzęcia hodowlanego na lekcji.",
+  "Co Pontus zrobił po wyjściu ze szkoły?",
+  "Rzucił się do biegu."
+ ],
+ [
+  "Długa droga do domu",
+  "Dla kogo dziewczynki kupiły cukierki ślazowe?",
+  "Dla dziadziusia.",
+  "Co znalazł Bosse i na co to wydał?",
+  "Znalazł koronę i kupił cukierki dla wszystkich.",
+  "Jakie przygody sprawiły, że dzieci tak późno wróciły?",
+  "Na przykład zakupy, zabawa w wodzie u szewca i zaglądanie do ptasiego gniazda."
+ ],
+ [
+  "Ząb Ollego",
+  "Dlaczego Olle nie chciał sam wyrwać zęba?",
+  "Bał się.",
+  "W jaki sposób Lasse wyciągnął ząb, gdy Olle spał?",
+  "Pociągnął za nitkę przywiązaną do zęba.",
+  "Gdzie Lasse zawiesił ząb?",
+  "Na lampie."
+ ],
+ [
+  "Księżniczki nad strumykiem",
+  "Gdzie Lisa i Anna lubiły się bawić?",
+  "W parowie, wśród kwiatów nad strumykiem.",
+  "Kogo udawały dziewczynki?",
+  "Księżniczki Śnieżynkę i Sasankę.",
+  "Dlaczego próbowały pocałować żabę i jak to się skończyło?",
+  "Chciały sprawdzić, czy zmieni się w księcia. Żaba uciekła."
+ ],
+ [
+  "Tajemnicza skrzynia",
+  "Co chłopcy schowali w Skrzyni Mędrców?",
+  "Swoje mleczne zęby.",
+  "Gdzie ukryły się dziewczynki, gdy chłopcy wrócili?",
+  "Na strychu.",
+  "Co dziewczynki dołożyły do skrzyni dla żartu?",
+  "Starą sztuczną szczękę Agaty."
+ ],
+ [
+  "Ucieczka przed baranem",
+  "Gdzie dzieci schroniły się przed burzą?",
+  "W Grzmiącej Jamie.",
+  "Jakie zwierzę przestraszyło dzieci na wyspie?",
+  "Baran Ulryk.",
+  "Jak Lasse wydostał się z szopy, do której wbiegł za nim baran?",
+  "Przez otwór w dachu."
+ ],
+ [
+  "Święto letniej nocy",
+  "Wokół czego mieszkańcy tańczyli w noc świętojańską?",
+  "Wokół drewnianego słupa przystrojonego kwiatami.",
+  "Co dziewczynki miały zrobić w milczeniu podczas wróżby?",
+  "Przejść przez dziewięć płotów.",
+  "Po co Lisa włożyła zioła pod poduszkę?",
+  "Chciała, żeby przyśnił jej się przyszły mąż."
+ ],
+ [
+  "Handel wiśniami",
+  "Skąd Lasse wziął pomysł na sprzedaż wiśni?",
+  "Z gazety, w której przeczytał o cenie wiśni w Sztokholmie.",
+  "Dlaczego dzieci przeniosły swoje stoisko na zakręt?",
+  "Na zakręcie kierowcy jechali wolniej i łatwiej mogli zauważyć stoisko.",
+  "Jak Lasse podzielił zarobione pieniądze?",
+  "Po równo między dzieci."
+ ],
+ [
+  "Dwie opiekunki",
+  "Kim Lisa i Anna miały się opiekować?",
+  "Kerstin, młodszą siostrą Ollego.",
+  "Co Kerstin zrobiła, gdy dziewczynki przestały ją zatrzymywać w wózku?",
+  "Między innymi weszła do rowu z wodą.",
+  "Jaka przygoda z pastą do butów sprawiła, że dziewczynki zwątpiły w swoje umiejętności?",
+  "Kerstin umazała się czarną pastą i bardzo krzyczała, gdy próbowały ją umyć."
+ ],
+ [
+  "Wyprawa na raki",
+  "Z kim dzieci wyruszyły łowić raki?",
+  "Z ojcami.",
+  "Jak spędziły wieczór nad jeziorem?",
+  "Siedziały przy ognisku i słuchały opowieści.",
+  "Co dzieci znalazły w koszach rano?",
+  "Dużo raków."
+ ]
+]</script>
+<script>
+'use strict';
+const el = id => document.getElementById(id);
+const chapters = JSON.parse(el('chapter-data').textContent);
+const starts = [0,17,32,44];
+const key = 'bullerbyn-reading-quest-v1';
+let selected = 0;
+let done = new Set();
+try {
+  const saved = JSON.parse(localStorage.getItem(key));
+  if (saved && Number.isInteger(saved.selected) && chapters[saved.selected]) selected = saved.selected;
+  if (Array.isArray(saved?.done)) done = new Set(saved.done.filter(i => Number.isInteger(i) && chapters[i]));
+} catch {}
+
+function save() {
+  try { localStorage.setItem(key,JSON.stringify({selected,done:[...done]})); } catch {}
+}
+
+function renderProgress() {
+  el('tally').textContent = 'Omówione rozdziały: ' + done.size + ' / ' + chapters.length;
+  el('progress').value = done.size;
+  el('mark').textContent = done.has(selected) ? 'Cofnij oznaczenie' : 'Zaznacz jako omówiony';
+  for (const button of el('map').children) {
+    const index = Number(button.dataset.index);
+    button.classList.toggle('done',done.has(index));
+    button.textContent = (done.has(index) ? '✓ ' : '') + (index + 1);
+    button.setAttribute('aria-label','Rozdział ' + (index + 1) + (done.has(index) ? ', omówiony' : ''));
+  }
+}
+
+function render(focus=false) {
+  const part = selected < starts[1] ? 0 : selected < starts[2] ? 1 : 2;
+  el('part').value = String(part);
+  el('map').replaceChildren();
+  for (let i=starts[part];i<starts[part+1];i++) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.index = i;
+    if (i===selected) button.setAttribute('aria-current','step');
+    button.addEventListener('click',()=>openChapter(i));
+    el('map').append(button);
+  }
+  const chapter = chapters[selected];
+  el('title').textContent = chapter[0];
+  el('label').textContent = 'Rozdział ' + (selected+1) + ' z ' + chapters.length;
+  el('questions').replaceChildren();
+  for (let i=1;i<chapter.length;i+=2) {
+    const item = document.createElement('li');
+    const prompt = document.createElement('strong');
+    prompt.textContent = chapter[i];
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = 'Odpowiedź dla dorosłego';
+    const answer = document.createElement('p');
+    answer.textContent = chapter[i+1];
+    details.append(summary,answer);
+    item.append(prompt,details);
+    el('questions').append(item);
+  }
+  el('prev').disabled = selected===0;
+  el('next').disabled = selected===chapters.length-1;
+  el('status').textContent = '';
+  renderProgress();
+  if (focus) el('title').focus();
+}
+
+function openChapter(index) {
+  if (!chapters[index]) return;
+  selected = index;
+  save();
+  render(true);
+}
+
+el('part').addEventListener('change',event=>openChapter(starts[Number(event.target.value)]));
+el('prev').addEventListener('click',()=>openChapter(selected-1));
+el('next').addEventListener('click',()=>openChapter(selected+1));
+el('mark').addEventListener('click',()=>{
+  if (done.has(selected)) {
+    done.delete(selected);
+    el('status').textContent = 'Cofnięto oznaczenie rozdziału.';
+  } else {
+    done.add(selected);
+    el('status').textContent = done.size===chapters.length ? 'Meta! Cała książka omówiona.' : 'Rozdział omówiony.';
+  }
+  save();
+  renderProgress();
+});
+render();
+</script>
+</body>
+</html>
