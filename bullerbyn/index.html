@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#fff7e7">
+<meta name="theme-color" content="#fff2f6">
 <title>Śladami dzieci z Bullerbyn</title>
 <style>
 :root{--ink:#253b2c;--muted:#4b6153;--paper:#fff7e7;--card:#fffdf7;--leaf:#245c42;--border:#ddd9c2}
@@ -24,13 +24,24 @@ ol{padding-left:1.75rem;margin:15px 0 0}li{padding:12px 0;border-bottom:1px soli
 nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.primary{background:var(--leaf);color:white;border-color:var(--leaf);font-weight:700}footer{margin-top:17px;font-size:.84rem;color:var(--muted)}footer a{color:inherit}.status{min-height:1.5em;margin-top:8px;color:var(--leaf)}
 @media(max-width:440px){.art{display:none}nav button{flex:1}.route{align-items:flex-start}}
 .chapter-picker{display:grid;gap:4px;margin:12px 0;font-weight:700}.chapter-picker select{width:100%;min-width:0}
+
+:root{--ink:#554357;--muted:#705969;--paper:#fffbfa;--card:#fffdfd;--leaf:#755482;--border:#eadde8}
+body{min-height:100vh;background:radial-gradient(ellipse at 70% 0,#fdf0fa,transparent 75%),var(--paper)}
+main{max-width:960px}.hero{background:linear-gradient(125deg,#fff9f5,#fbe8ef 60%,#f0e7f7);border:1px solid #f4e5ef;border-radius:32px}
+h1,h2{font-weight:400;color:#644b65}
+.art{position:relative;color:#fffdfd;text-shadow:0 5px 20px #b795b756;font-size:clamp(3.5rem,11vw,7rem);line-height:1}.art span{position:absolute;top:6%;right:0;color:#a1799a;font-size:.31em}
+.back{display:inline-flex;align-items:center;min-height:44px;padding:5px 12px;margin-bottom:8px;border:1px solid var(--border);border-radius:999px;background:#fff9fc;color:var(--leaf);font-weight:700;text-decoration:none}
+button,select{border-radius:14px}.map button.done,details p{background:#f2e9f7}.chapter{box-shadow:0 8px 24px #79516e0a}.mode button:not([aria-pressed="true"]){background:#f9edf3}
+button:hover:not(:disabled):not(.primary):not([aria-current]):not([aria-pressed="true"]),.back:hover{background:#f2e7f4}
+:focus-visible{outline-color:#936799}
 </style>
 </head>
 <body>
 <main>
+<a class="back" href="../nika-soft/index.html">← Wróć do portalu Niki</a>
 <header class="hero">
 <div><h1>Śladami dzieci z Bullerbyn</h1><p>Wybierz przeczytany rozdział i opowiedz, co się w nim wydarzyło.</p></div>
-<div class="art" aria-hidden="true">🏡 🏠 🏡<span>🌳 · 🌿 · 🌳</span></div>
+<div class="art" aria-hidden="true">☁<span>✧</span></div>
 </header>
 <div class="route">
 <label for="part">Część książki<select id="part"><option value="0">I · rozdziały 1–17</option><option value="1">II · rozdziały 18–32</option><option value="2">III · rozdziały 33–44</option></select></label>
@@ -55,7 +66,7 @@ nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.primary{background:var(
 </nav>
 <p class="status" id="status" role="status"></p>
 </section>
-<footer><a href="https://lubimyczytac.pl/ksiazka/209271/dzieci-z-bullerbyn">Spis rozdziałów wydania</a> · <a href="https://www.bryk.pl/lektury/astrid-lindgren/dzieci-z-bullerbyn.streszczenie-szczegolowe">Opracowanie wydarzeń</a></footer>
+<footer><a href="https://www.bryk.pl/lektury/astrid-lindgren/dzieci-z-bullerbyn.streszczenie-szczegolowe">Opracowanie wydarzeń</a></footer>
 </main>
 <script id="chapter-data" type="application/json">[
  [
