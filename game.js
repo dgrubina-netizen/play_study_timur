@@ -99,7 +99,9 @@ const icons = {
 };
 const portalKey = 'portal-timura-v1';
 const activities = {
-  archive: ['Archiwum 1815–1832', 'data-study="menu"'],
+  archive: ['Przygotowanie do poprawy', 'href="./historia.html"'],
+  preparation: ['Przygotowanie do poprawy', 'href="./historia.html"'],
+  legacy: ['Archiwum · starsze fiszki', 'data-study="menu"'],
   timeline: ['Maszyna czasu', 'data-start="history"'],
   radar: ['Radar Polski', 'data-start="geo"'],
   expedition: ['Ekspedycja', 'data-exp="menu"'],
@@ -153,7 +155,7 @@ function home(){
           <article class="hq-card">
             <div class="hq-thumb">${icons.history}</div>
             <h3>Historia</h3>
-            <div class="hq-actions">${missionButton('archive','Archiwum · dział II',true)}${missionButton('timeline')}</div>
+            <div class="hq-actions">${missionButton('archive','Poprawa · tematy 1–3',true)}${missionButton('timeline')}${missionButton('legacy')}</div>
           </article>
           <article class="hq-card">
             <div class="hq-thumb geo">${icons.geo}</div>
