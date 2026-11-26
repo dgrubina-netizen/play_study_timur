@@ -106,7 +106,8 @@ const activities = {
   radar: ['Radar Polski', 'data-start="geo"'],
   expedition: ['Ekspedycja', 'data-exp="menu"'],
   map: ['Krainy geograficzne Polski', 'href="./krainy-polski.html"'],
-  chemistry: ['Szyfr pierwiastków', 'href="./chemia.html"']
+  chemistry: ['Szyfr pierwiastków', 'href="./chemia.html"'],
+  english: ['Past Simple czy Present Perfect?', 'href="./angielski.html"']
 };
 function portalRead(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
@@ -167,6 +168,11 @@ function home(){
             <h3>Chemia</h3>
             <div class="hq-actions">${missionButton('chemistry','Szyfr pierwiastków',true)}<p>22 pierwiastki · trening i kartkówka</p></div>
           </article>
+          <article class="hq-card">
+            <div class="hq-thumb chem" aria-hidden="true"><span>did</span><span>have</span></div>
+            <h3>Angielski</h3>
+            <div class="hq-actions">${missionButton('english','Past Simple czy Present Perfect?',true)}<p>Luki, pytania, przeczenia i tłumaczenia</p></div>
+          </article>
         </div>
       </section>
       <section id="postepy" aria-labelledby="progress-title">
@@ -175,6 +181,7 @@ function home(){
           <div class="hq-stat"><strong>Historia · ostatni sprawdzian</strong><p>${resultLabel(saved.history, 'Brak wyniku')}</p></div>
           <div class="hq-stat"><strong>Geografia · ekspedycja</strong><p>${missionCount} / 7 ukończonych misji</p></div>
           <div class="hq-stat"><strong>Chemia · ostatnia kartkówka</strong><p>${resultLabel(saved.chemistry, 'Brak wyniku')}</p></div>
+          <div class="hq-stat"><strong>Angielski · ostatni test</strong><p>${resultLabel(saved.english, 'Brak wyniku')}</p></div>
         </div>
       </section>
     </div>
